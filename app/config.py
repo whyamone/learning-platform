@@ -27,8 +27,16 @@ class Settings(BaseSettings):
     # По умолчанию — файл data/app.db внутри проекта.
     database_url: str = f"sqlite:///{BASE_DIR / 'data' / 'app.db'}"
 
-    # Папка с учебными материалами (Markdown + YAML). Понадобится на этапе 1.
+    # Папка с учебными материалами (Markdown + YAML).
     content_dir: Path = BASE_DIR / "content"
+
+    # Часовой пояс — по нему определяется, какой сегодня день.
+    # Список названий: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    timezone: str = "Europe/Moscow"
+
+    # Сколько новых карточек показывать в день. Ограничение нужно, чтобы после
+    # большой темы на тебя не свалилось тридцать незнакомых карточек разом.
+    new_cards_per_day: int = 10
 
 
 @lru_cache

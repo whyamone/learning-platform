@@ -158,3 +158,74 @@ def test_real_content_folder_has_no_problems():
     result = load_content(BASE_DIR / "content")
 
     assert result.problems == [], problem_messages(result)
+
+
+# --- Квизы и карточки -----------------------------------------------------------
+
+
+def test_reads_quiz_and_cards_next_to_topic(content_dir: Path):
+    topic = load_content(content_dir).stages[0].modules[0].topics[0]
+
+    assert len(topic.questions) == 2
+    first = topic.questions[0]
+    assert first.text == "Что выведет print(7 // 2)?"
+    # Числа из YAML превращаются в текст, а «answer: 1» — в индекс 0.
+    assert first.options == ["3", "3.5", "4"]
+    assert first.correct_index == 0
+    assert first.explanation == "Оператор // отбрасывает дробную часть."
+
+    assert [card.front for card in topic.cards][0] == "Что делает оператор //?"
+    assert len(topic.cards) == 3
+
+
+def test_topic_without_quiz_files_has_empty_lists(content_dir: Path):
+    topic = load_content(content_dir).stages[0].modules[0].topics[1]
+
+    assert topic.questions == []
+    assert topic.cards == []
+
+
+def test_bad_question_is_skipped_but_others_are_kept(content_dir: Path):
+    path = content_dir / "01-fundament" / "01-python" / "01-peremennye.quiz.yaml"
+    write_file(
+        path,
+        "- question: Хороший вопрос?\n  options: [да, нет]\n  answer: 1\n"
+        "- question: Номер ответа за пределами списка\n  options: [а, б]\n  answer: 5\n"
+        "- question: Один вариант\n  options: [а]\n  answer: 1\n",
+    )
+
+    result = load_content(content_dir)
+    topic = result.stages[0].modules[0].topics[0]
+
+    assert [question.text for question in topic.questions] == ["Хороший вопрос?"]
+    messages = problem_messages(result)
+    assert "Элемент №2" in messages and "число от 1 до 2" in messages
+    assert "Элемент №3" in messages and "от 2 до 6 вариантов" in messages
+
+
+def test_yes_no_options_must_be_quoted(content_dir: Path):
+    path = content_dir / "01-fundament" / "01-python" / "01-peremennye.quiz.yaml"
+    # Без кавычек YAML читает yes и no как «истину» и «ложь», а не как слова.
+    write_file(path, "- question: Вопрос?\n  options: [yes, no]\n  answer: 1\n")
+
+    assert "возьми значение в кавычки" in problem_messages(load_content(content_dir))
+
+
+def test_broken_quiz_file_does_not_hide_topic(content_dir: Path):
+    path = content_dir / "01-fundament" / "01-python" / "01-peremennye.quiz.yaml"
+    write_file(path, "- question: [не закрыта\n")
+
+    result = load_content(content_dir)
+
+    assert "01-peremennye.quiz.yaml" in problem_messages(result)
+    assert result.stages[0].modules[0].topics[0].title == "Переменные"
+
+
+def test_duplicate_card_is_reported(content_dir: Path):
+    path = content_dir / "01-fundament" / "01-python" / "01-peremennye.cards.yaml"
+    write_file(path, "- front: Вопрос?\n  back: Раз\n- front: вопрос?\n  back: Два\n")
+
+    result = load_content(content_dir)
+
+    assert "встречается дважды" in problem_messages(result)
+    assert len(result.stages[0].modules[0].topics[0].cards) == 1

@@ -32,6 +32,19 @@
   {% endif %}
 </section>
 
+<section class="card">
+  <div class="card-head">
+    <h2>Повторение</h2>
+    <a href="{{ url_for('review_page') }}">Открыть →</a>
+  </div>
+  {% if review_count %}
+  <p>Карточек на сегодня: <strong>{{ review_count }}</strong>. Это займёт несколько минут.</p>
+  <a class="btn btn-primary" href="{{ url_for('review_page') }}">Повторить</a>
+  {% else %}
+  <p class="muted">На сегодня карточек нет.</p>
+  {% endif %}
+</section>
+
 {% if stage_views %}
 <section class="card">
   <div class="card-head">

@@ -19,7 +19,7 @@ from app.config import Settings, get_settings
 from app.db import Base, get_db, make_engine
 from app.main import create_app
 from app.services.importer import import_content
-from tests.helpers import PYTHON_TOPIC, SIMPLE_TOPIC, write_file
+from tests.helpers import PYTHON_CARDS, PYTHON_QUIZ, PYTHON_TOPIC, SIMPLE_TOPIC, write_file
 
 
 @pytest.fixture
@@ -31,6 +31,8 @@ def content_dir(tmp_path: Path) -> Path:
 
     write_file(stage / "01-python" / "module.yaml", "title: Python\n")
     write_file(stage / "01-python" / "01-peremennye.md", PYTHON_TOPIC)
+    write_file(stage / "01-python" / "01-peremennye.quiz.yaml", PYTHON_QUIZ)
+    write_file(stage / "01-python" / "01-peremennye.cards.yaml", PYTHON_CARDS)
     write_file(stage / "01-python" / "02-usloviya.md", SIMPLE_TOPIC.format(title="Условия"))
 
     write_file(stage / "02-linux" / "module.yaml", "title: Linux\n")

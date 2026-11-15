@@ -329,3 +329,71 @@ code {
   .glossary div { grid-template-columns: 1fr; gap: 0; }
   .card { padding: 16px; }
 }
+
+/* ===================== Этап 3: квизы и карточки ===================== */
+
+.section-title { margin: 28px 0 12px; }
+.btn + .btn { margin-left: 8px; }
+
+/* --- Квиз --- */
+.question { border: 1px solid var(--border); margin-left: 0; margin-right: 0; min-width: 0; }
+.question-text { font-weight: 600; padding: 0; margin: 0 0 10px; line-height: 1.45; }
+legend.question-text { float: left; width: 100%; }   /* чтобы legend вёл себя как обычный заголовок */
+legend.question-text + * { clear: both; }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.option:hover { background: var(--surface-2); }
+.option input { margin-top: 5px; accent-color: var(--accent); flex: none; }
+
+.score { font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+.question-correct { border-left: 3px solid var(--accent); }
+.question-wrong { border-left: 3px solid var(--error); }
+.badge-wrong { color: var(--error); border-color: var(--error); }
+.question-text .badge { margin-left: 6px; font-weight: 400; }
+.option-review { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 4px; }
+.option-review li { padding: 6px 10px; border-radius: 8px; color: var(--muted); }
+.option-review .is-right { color: var(--text); background: rgba(95, 179, 161, 0.14); }
+.option-review .is-chosen-wrong { color: var(--text); background: rgba(224, 122, 122, 0.14); }
+.option-note { color: var(--muted); font-size: 0.85rem; }
+.explanation { margin: 0; padding: 8px 12px; background: var(--surface-2); border-radius: 8px; }
+.cards-note { margin: 14px 0 0; }
+
+/* --- Карточки --- */
+.review-counter { margin: 0 0 10px; font-size: 0.9rem; }
+.flashcard { max-width: 720px; }
+.flashcard-front { font-size: 1.15rem; margin-bottom: 18px; }
+.flashcard-answer > summary { list-style: none; width: fit-content; }
+.flashcard-answer > summary::-webkit-details-marker { display: none; }
+.flashcard-answer[open] > summary { display: none; }   /* после раскрытия кнопка больше не нужна */
+.flashcard-back { padding-top: 16px; border-top: 1px solid var(--border); margin-bottom: 18px; }
+.grade-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.grade-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.grade-btn:hover { border-color: var(--muted); }
+.grade-interval { font-size: 0.78rem; color: var(--muted); }
+.grade-again { border-bottom: 3px solid var(--error); }
+.grade-hard { border-bottom: 3px solid var(--warn); }
+.grade-good { border-bottom: 3px solid var(--accent); }
+.grade-easy { border-bottom: 3px solid var(--info); }
+
+@media (max-width: 560px) {
+  .grade-buttons { grid-template-columns: repeat(2, 1fr); }
+}
+

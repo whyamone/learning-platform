@@ -10,6 +10,7 @@
 привязанный к теме, сохраняется при любом количестве импортов.
 """
 
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -17,7 +18,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Module, Stage, Topic, TopicLink
+from app.models import Card, Module, QuizQuestion, Stage, Topic, TopicLink
 from app.services.content_loader import ContentProblem, load_content
 from app.timeutils import utcnow
 
@@ -29,8 +30,22 @@ class ImportReport:
     stages: int = 0
     modules: int = 0
     topics: int = 0
+    questions: int = 0
+    cards: int = 0
     problems: list[ContentProblem] = field(default_factory=list)
     finished_at: datetime = field(default_factory=utcnow)
+
+
+def make_card_key(topic_slug: str, front: str) -> str:
+    """Вычислить ключ карточки — короткий «отпечаток» темы и текста вопроса.
+
+    Хеш-функция превращает любой текст в строку фиксированной длины: одинаковый
+    текст всегда даёт одинаковый результат, а малейшее изменение — совсем другой.
+    Пробелы и регистр букв не учитываем, чтобы мелкая правка не создавала новую карточку.
+    """
+    normalized = " ".join(front.lower().split())
+    digest = hashlib.sha256(f"{topic_slug}\n{normalized}".encode()).hexdigest()
+    return digest[:32]
 
 
 def import_content(db: Session, content_dir: Path) -> ImportReport:
@@ -42,9 +57,10 @@ def import_content(db: Session, content_dir: Path) -> ImportReport:
     stages = {stage.slug: stage for stage in db.scalars(select(Stage))}
     modules = {module.slug: module for module in db.scalars(select(Module))}
     topics = {topic.slug: topic for topic in db.scalars(select(Topic))}
+    cards = {card.key: card for card in db.scalars(select(Card))}
 
     # Сначала считаем всё неактивным. Ниже «включим» то, что нашлось в файлах.
-    for item in (*stages.values(), *modules.values(), *topics.values()):
+    for item in (*stages.values(), *modules.values(), *topics.values(), *cards.values()):
         item.is_active = False
 
     for stage_data in loaded.stages:
@@ -105,6 +121,36 @@ def import_content(db: Session, content_dir: Path) -> ImportReport:
                     for number, link in enumerate(topic_data.links, start=1)
                 ]
                 report.topics += 1
+
+                # Вопросы квиза заменяем целиком, как и ссылки: к отдельному
+                # вопросу ничего не привязано (в попытках хранится только счёт).
+                topic.questions = [
+                    QuizQuestion(
+                        position=number,
+                        text=question.text,
+                        options=question.options,
+                        correct_index=question.correct_index,
+                        explanation=question.explanation,
+                    )
+                    for number, question in enumerate(topic_data.questions, start=1)
+                ]
+                report.questions += len(topic_data.questions)
+
+                # С карточками так нельзя: у каждой своё расписание повторений.
+                # Поэтому ищем карточку по ключу и обновляем, а не пересоздаём.
+                for number, card_data in enumerate(topic_data.cards, start=1):
+                    key = make_card_key(topic_data.slug, card_data.front)
+                    card = cards.get(key)
+                    if card is None:
+                        card = Card(key=key)
+                        db.add(card)
+                        cards[key] = card  # на случай двух одинаковых вопросов в файле
+                    card.topic = topic
+                    card.position = number
+                    card.front_md = card_data.front
+                    card.back_md = card_data.back
+                    card.is_active = True
+                    report.cards += 1
 
     # commit — зафиксировать все изменения разом. До него в базе ничего не меняется.
     db.commit()

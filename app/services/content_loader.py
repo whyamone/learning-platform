@@ -11,7 +11,9 @@
         stage.yaml               ← название и описание этапа
         01-python-osnovy/        ← модуль
           module.yaml
-          01-pervaya-programma.md   ← тема: «шапка» YAML + текст Markdown
+          01-pervaya-programma.md          ← тема: «шапка» YAML + текст Markdown
+          01-pervaya-programma.quiz.yaml   ← вопросы квиза (необязательно)
+          01-pervaya-programma.cards.yaml  ← карточки для повторения (необязательно)
 
 Если в файле ошибка, он пропускается, а сообщение об ошибке попадает
 в список `problems` и показывается на странице дорожной карты.
@@ -44,6 +46,10 @@ ALLOWED_TOPIC_KEYS = {
     "done_criteria",
     "stub",
 }
+ALLOWED_QUESTION_KEYS = {"question", "options", "answer", "explanation"}
+ALLOWED_CARD_KEYS = {"front", "back"}
+MIN_OPTIONS = 2
+MAX_OPTIONS = 6
 ALLOWED_LINK_KINDS = {"docs", "article", "course", "video", "book", "practice"}
 ALLOWED_LINK_LANGS = {"ru", "en"}
 
@@ -65,6 +71,20 @@ class LinkData:
 
 
 @dataclass
+class QuestionData:
+    text: str
+    options: list[str]
+    correct_index: int  # счёт с нуля; в файле для удобства пишется с единицы
+    explanation: str = ""
+
+
+@dataclass
+class CardData:
+    front: str
+    back: str
+
+
+@dataclass
 class TopicData:
     slug: str
     position: int
@@ -80,6 +100,8 @@ class TopicData:
     theory_md: str = ""
     practice_md: str = ""
     is_stub: bool = False
+    questions: list[QuestionData] = field(default_factory=list)
+    cards: list[CardData] = field(default_factory=list)
 
 
 @dataclass
@@ -268,6 +290,8 @@ def _load_topic(topic_file: Path, position: int, slug: str, result, relative) ->
     _report_unknown_keys(meta, ALLOWED_TOPIC_KEYS, relative(topic_file), result)
     theory_md, practice_md = _split_body(body)
 
+    cards_path = topic_file.with_name(f"{topic_file.stem}.cards.yaml")
+
     hours = meta.get("estimated_hours", 2.0)
     # bool — тоже число для Python (True == 1), поэтому исключаем его отдельно.
     if isinstance(hours, bool) or not isinstance(hours, int | float) or hours <= 0:
@@ -288,6 +312,137 @@ def _load_topic(topic_file: Path, position: int, slug: str, result, relative) ->
         theory_md=theory_md,
         practice_md=practice_md,
         is_stub=_get_bool(meta, "stub"),
+        questions=_load_optional_list(
+            topic_file.with_name(f"{topic_file.stem}.quiz.yaml"), _parse_question, result, relative
+        ),
+        cards=_drop_duplicate_cards(
+            _load_optional_list(cards_path, _parse_card, result, relative),
+            relative(cards_path),
+            result,
+        ),
+    )
+
+
+# --- Квизы и карточки -----------------------------------------------------------
+
+
+def _load_optional_list(path: Path, parse_item, result, relative) -> list:
+    """Прочитать необязательный файл со списком вопросов или карточек.
+
+    Файла может не быть — это нормально, вернётся пустой список. Ошибка
+    в отдельном вопросе не отменяет остальные: плохой элемент пропускается,
+    а замечание попадает в общий список.
+    """
+    if not path.exists():
+        return []
+
+    try:
+        data = yaml.safe_load(_read_text(path))
+    except yaml.YAMLError as error:
+        mark = getattr(error, "problem_mark", None)
+        where = f" (строка {mark.line + 1})" if mark is not None else ""
+        message = f"Ошибка в YAML{where}: проверь отступы, двоеточия и кавычки."
+        result.problems.append(ContentProblem(relative(path), message))
+        return []
+    except ContentFormatError as error:
+        result.problems.append(ContentProblem(relative(path), str(error)))
+        return []
+
+    if data is None:
+        return []
+    if not isinstance(data, list):
+        result.problems.append(
+            ContentProblem(relative(path), "Файл должен быть списком: каждый элемент с дефиса.")
+        )
+        return []
+
+    items = []
+    for number, raw_item in enumerate(data, start=1):
+        try:
+            items.append(parse_item(raw_item))
+        except ContentFormatError as error:
+            result.problems.append(ContentProblem(relative(path), f"Элемент №{number}: {error}"))
+    return items
+
+
+def _drop_duplicate_cards(cards: list[CardData], path: str, result) -> list[CardData]:
+    """Убрать карточки с одинаковым вопросом: расписание хранится по тексту вопроса."""
+    seen: set[str] = set()
+    unique: list[CardData] = []
+    for card in cards:
+        normalized = " ".join(card.front.lower().split())
+        if normalized in seen:
+            result.problems.append(
+                ContentProblem(path, f"Карточка с вопросом «{card.front}» встречается дважды.")
+            )
+            continue
+        seen.add(normalized)
+        unique.append(card)
+    return unique
+
+
+def _require_mapping(raw: Any, allowed_keys: set[str]) -> dict[str, Any]:
+    """Проверить, что элемент списка — набор полей и что лишних полей нет."""
+    if not isinstance(raw, dict):
+        raise ContentFormatError("ожидались поля в формате «ключ: значение».")
+    unknown = sorted(str(key) for key in raw if key not in allowed_keys)
+    if unknown:
+        allowed = ", ".join(sorted(allowed_keys))
+        raise ContentFormatError(f"неизвестные поля: {', '.join(unknown)}. Допустимые: {allowed}.")
+    return raw
+
+
+def _plain_text(value: Any, field_name: str) -> str:
+    """Превратить значение из YAML в строку.
+
+    YAML сам угадывает типы: `3` он прочитает как число, а `yes` и `no` —
+    как «истину» и «ложь». Числа безопасно превратить обратно в текст,
+    а вот `yes` уже потерян — поэтому просим взять такое значение в кавычки.
+    """
+    if isinstance(value, bool) or value is None:
+        raise ContentFormatError(
+            f"поле «{field_name}»: возьми значение в кавычки, иначе YAML читает его не как текст."
+        )
+    if not isinstance(value, str | int | float):
+        raise ContentFormatError(f"поле «{field_name}» должно быть текстом.")
+    text = str(value).strip()
+    if not text:
+        raise ContentFormatError(f"поле «{field_name}» не должно быть пустым.")
+    return text
+
+
+def _parse_question(raw: Any) -> QuestionData:
+    item = _require_mapping(raw, ALLOWED_QUESTION_KEYS)
+
+    options_raw = item.get("options")
+    if not isinstance(options_raw, list) or not MIN_OPTIONS <= len(options_raw) <= MAX_OPTIONS:
+        raise ContentFormatError(
+            f"в «options» должно быть от {MIN_OPTIONS} до {MAX_OPTIONS} вариантов ответа."
+        )
+    options = [_plain_text(option, "options") for option in options_raw]
+    if len(set(options)) != len(options):
+        raise ContentFormatError("варианты ответа не должны повторяться.")
+
+    answer = item.get("answer")
+    if isinstance(answer, bool) or not isinstance(answer, int) or not 1 <= answer <= len(options):
+        raise ContentFormatError(
+            f"«answer» — номер правильного варианта, число от 1 до {len(options)}."
+        )
+
+    explanation = item.get("explanation")
+    return QuestionData(
+        text=_plain_text(item.get("question"), "question"),
+        options=options,
+        correct_index=answer - 1,
+        explanation="" if explanation is None else _plain_text(explanation, "explanation"),
+    )
+
+
+def _parse_card(raw: Any) -> CardData:
+    item = _require_mapping(raw, ALLOWED_CARD_KEYS)
+    return CardData(
+        front=_plain_text(item.get("front"), "front"),
+        back=_plain_text(item.get("back"), "back"),
     )
 
 

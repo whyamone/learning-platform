@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.models import Topic, TopicStatus
+from app.services import quiz as quiz_service
 from app.services import roadmap as roadmap_service
 from app.services.importer import import_content
 from app.templating import templates
@@ -55,7 +56,11 @@ def topic_page(slug: str, request: Request, db: Session = Depends(get_db)) -> HT
     return templates.TemplateResponse(
         request,
         "topic.html",
-        {"topic": topic, "neighbors": roadmap_service.get_neighbors(stages, topic)},
+        {
+            "topic": topic,
+            "neighbors": roadmap_service.get_neighbors(stages, topic),
+            "quiz_stats": quiz_service.get_stats(db, topic),
+        },
     )
 
 

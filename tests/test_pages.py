@@ -32,7 +32,7 @@ def test_static_files_are_served(client):
 
 def test_pages_do_not_load_anything_from_the_internet(client):
     """Приложение должно работать без интернета: стили и скрипты — только свои."""
-    for url in ("/", "/roadmap", "/topics/peremennye"):
+    for url in ("/", "/roadmap", "/topics/peremennye", "/topics/peremennye/quiz", "/review"):
         html = client.get(url).text
 
         # Адреса, которые браузер загружает сам: <script src>, <img src>, <link href>.
@@ -115,3 +115,140 @@ def test_reimport_picks_up_new_topic_and_shows_problems(client, content_dir: Pat
     assert "Права доступа" in response.text
     assert "Замечания к материалам (1)" in response.text
     assert "03-plohaya.md" in response.text
+
+
+# --- Квизы -----------------------------------------------------------------------
+
+
+def question_field_names(html: str) -> list[str]:
+    """Имена групп переключателей на странице квиза, по порядку вопросов."""
+    names = re.findall(r'name="(q-\d+)"', html)
+    return list(dict.fromkeys(names))  # убрать повторы, сохранив порядок
+
+
+def test_topic_page_offers_quiz_and_mentions_cards(client):
+    html = client.get("/topics/peremennye").text
+
+    assert "Проверь себя" in html
+    assert "Пройти квиз" in html
+    assert "Карточек для повторения: 3" in html
+
+
+def test_quiz_page_shows_questions_without_answers(client):
+    response = client.get("/topics/peremennye/quiz")
+
+    assert response.status_code == 200
+    assert "Что выведет print(7 // 2)?" in response.text
+    assert len(question_field_names(response.text)) == 2
+    # Объяснение нельзя показывать до ответа.
+    assert "отбрасывает дробную часть" not in response.text
+
+
+def test_topic_without_questions_has_no_quiz_page(client):
+    assert client.get("/topics/usloviya/quiz").status_code == 404
+    assert "Проверь себя" not in client.get("/topics/usloviya").text
+
+
+def test_submit_quiz_shows_score_and_explanations(client):
+    first, second = question_field_names(client.get("/topics/peremennye/quiz").text)
+
+    # Первый ответ верный (вариант 0), второй — нет (нужен вариант 1).
+    response = client.post("/topics/peremennye/quiz", data={first: "0", second: "0"})
+
+    assert response.status_code == 200
+    assert "1 из 2 · 50%" in response.text
+    assert "отбрасывает дробную часть" in response.text
+    assert "правильный ответ" in response.text
+    assert "твой ответ" in response.text
+    # Попытка сохранилась и видна на странице темы.
+    assert "лучший результат: 50%" in client.get("/topics/peremennye").text
+
+
+def test_submit_quiz_without_answers_counts_zero(client):
+    response = client.post("/topics/peremennye/quiz", data={})
+
+    assert "0 из 2 · 0%" in response.text
+    assert "нет ответа" in response.text
+
+
+def test_passed_quiz_suggests_marking_topic_done(client):
+    first, second = question_field_names(client.get("/topics/peremennye/quiz").text)
+
+    response = client.post("/topics/peremennye/quiz", data={first: "0", second: "1"})
+
+    assert "2 из 2 · 100%" in response.text
+    assert "Квиз пройден" in response.text
+
+
+# --- Повторение карточек -----------------------------------------------------------
+
+
+def start_topic(client, slug: str = "peremennye") -> None:
+    client.post(f"/topics/{slug}/status", data={"status": "in_progress"})
+
+
+def current_card_url(html: str) -> str:
+    """Адрес, на который отправляется оценка текущей карточки."""
+    return re.search(r'action="([^"]*/review/\d+)"', html).group(1)
+
+
+def test_review_is_empty_until_topic_is_started(client):
+    response = client.get("/review")
+
+    assert response.status_code == 200
+    assert "На сегодня всё" in response.text
+    assert "На сегодня карточек нет" in client.get("/").text
+
+
+def test_review_shows_card_after_topic_is_started(client):
+    start_topic(client)
+
+    html = client.get("/review").text
+
+    assert "Осталось на сегодня: 3" in html
+    assert "Что делает оператор //?" in html
+    assert "новая карточка" in html
+    assert "<strong>отбрасывает</strong>" in html  # оборот карточки — тоже Markdown
+    for label in ("Не помню", "С трудом", "Хорошо", "Легко"):
+        assert label in html
+    assert "Карточек на сегодня: <strong>3</strong>" in client.get("/").text
+
+
+def test_grading_card_with_htmx_returns_next_card(client):
+    start_topic(client)
+    url = current_card_url(client.get("/review").text)
+
+    response = client.post(url, data={"grade": "good"}, headers={"HX-Request": "true"})
+
+    assert response.status_code == 200
+    assert "<html" not in response.text
+    assert "Осталось на сегодня: 2" in response.text
+    assert "Чем = отличается от ==?" in response.text
+
+
+def test_grading_card_without_htmx_redirects(client):
+    start_topic(client)
+    url = current_card_url(client.get("/review").text)
+
+    response = client.post(url, data={"grade": "easy"}, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"].endswith("/review")
+
+
+def test_review_finishes_when_all_cards_are_graded(client):
+    start_topic(client)
+
+    for _ in range(3):
+        url = current_card_url(client.get("/review").text)
+        client.post(url, data={"grade": "good"})
+
+    assert "На сегодня всё" in client.get("/review").text
+
+
+def test_grading_rejects_unknown_grade_and_unknown_card(client):
+    start_topic(client)
+    url = current_card_url(client.get("/review").text)
+
+    assert client.post(url, data={"grade": "отлично"}).status_code == 422
+    assert client.post("/review/999999", data={"grade": "good"}).status_code == 404

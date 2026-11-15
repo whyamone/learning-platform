@@ -1,0 +1,43 @@
+{# Область с текущей карточкой. После оценки HTMX заменяет её целиком
+   на следующую карточку (см. hx-target и hx-swap в форме ниже). #}
+<div id="review-area">
+  {% if card %}
+  <p class="muted review-counter">
+    Осталось на сегодня: {{ queue.total }}
+    {% if queue.due and queue.new %}(повторить {{ queue.due | length }}, новых {{ queue.new | length }}){% endif %}
+  </p>
+
+  <article class="card flashcard">
+    <p class="card-label">
+      {{ card.topic.title }} · {{ "повторение" if card.state else "новая карточка" }}
+    </p>
+    <div class="prose flashcard-front">{{ card.front_md | markdown }}</div>
+
+    {# <details> — стандартный раскрывающийся блок HTML: работает без JavaScript. #}
+    <details class="flashcard-answer">
+      <summary class="btn btn-primary">Показать ответ</summary>
+      <div class="prose flashcard-back">{{ card.back_md | markdown }}</div>
+
+      <form method="post" action="{{ url_for('grade_card', card_id=card.id) }}"
+            hx-post="{{ url_for('grade_card', card_id=card.id) }}"
+            hx-target="#review-area" hx-swap="outerHTML" class="grade-buttons">
+        {% for grade in grades %}
+        <button type="submit" name="grade" value="{{ grade.value }}" class="grade-btn grade-{{ grade.value }}">
+          <span class="grade-label">{{ grade.label }}</span>
+          <span class="grade-interval">{{ intervals[grade] }}</span>
+        </button>
+        {% endfor %}
+      </form>
+    </details>
+  </article>
+  {% else %}
+  <section class="card">
+    <h2>На сегодня всё</h2>
+    <p class="muted">
+      Карточек к повторению нет. Новые появятся, когда начнёшь следующую тему,
+      а уже знакомые вернутся по расписанию.
+    </p>
+    <a class="btn" href="{{ url_for('roadmap') }}">К дорожной карте</a>
+  </section>
+  {% endif %}
+</div>

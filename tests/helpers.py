@@ -48,3 +48,30 @@ def write_file(path: Path, text: str) -> None:
     """Создать файл вместе с недостающими папками."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+# Квиз и карточки к теме «Переменные» (файлы лежат рядом с файлом темы).
+PYTHON_QUIZ = """- question: Что выведет print(7 // 2)?
+  options:
+    - 3
+    - "3.5"
+    - 4
+  answer: 1
+  explanation: Оператор // отбрасывает дробную часть.
+
+- question: Каким знаком присваивают значение?
+  options:
+    - "=="
+    - "="
+  answer: 2
+"""
+
+PYTHON_CARDS = """- front: Что делает оператор //?
+  back: Делит и **отбрасывает** дробную часть.
+
+- front: Чем = отличается от ==?
+  back: Первый присваивает, второй сравнивает.
+
+- front: Какой тип у значения 3.14?
+  back: float
+"""

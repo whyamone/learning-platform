@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import __version__
 from app.config import get_settings
 from app.db import SessionLocal
-from app.routers import health, pages, roadmap
+from app.routers import health, pages, quiz, review, roadmap
 from app.services.content_loader import ContentProblem
 from app.services.importer import ImportReport, import_content
 from app.templating import APP_DIR
@@ -48,10 +48,13 @@ def run_startup_import() -> ImportReport:
         )
 
     logger.info(
-        "Материалы импортированы: этапов %d, модулей %d, тем %d, замечаний %d",
+        "Материалы импортированы: этапов %d, модулей %d, тем %d, "
+        "вопросов %d, карточек %d, замечаний %d",
         report.stages,
         report.modules,
         report.topics,
+        report.questions,
+        report.cards,
         len(report.problems),
     )
     return report
@@ -90,6 +93,8 @@ def create_app(*, import_on_startup: bool = True) -> FastAPI:
     app.include_router(health.router)
     app.include_router(pages.router)
     app.include_router(roadmap.router)
+    app.include_router(quiz.router)
+    app.include_router(review.router)
 
     return app
 

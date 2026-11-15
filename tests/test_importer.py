@@ -1,13 +1,16 @@
 """Тесты импорта материалов в базу данных."""
 
+from datetime import date
 from pathlib import Path
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Module, Stage, Topic, TopicLink, TopicStatus
+from app.models import Card, Module, QuizQuestion, Stage, Topic, TopicLink, TopicStatus
+from app.services import cards as cards_service
 from app.services import roadmap as roadmap_service
 from app.services.importer import import_content
+from app.services.sm2 import Grade
 from tests.helpers import SIMPLE_TOPIC, write_file
 
 
@@ -91,3 +94,46 @@ def test_problems_are_returned_in_report(db_session: Session, content_dir: Path)
 
     assert report.topics == 3
     assert len(report.problems) == 1
+
+
+# --- Квизы и карточки -----------------------------------------------------------
+
+
+def test_import_creates_questions_and_cards(db_session: Session, content_dir: Path):
+    report = import_content(db_session, content_dir)
+
+    assert (report.questions, report.cards) == (2, 3)
+    topic = roadmap_service.get_topic(db_session, "peremennye")
+    assert [question.correct_index for question in topic.questions] == [0, 1]
+    assert len(topic.active_cards) == 3
+
+
+def test_reimport_does_not_duplicate_questions_and_cards(db_session: Session, content_dir: Path):
+    import_content(db_session, content_dir)
+    import_content(db_session, content_dir)
+
+    assert count(db_session, QuizQuestion) == 2
+    assert count(db_session, Card) == 3
+
+
+def test_editing_card_answer_keeps_schedule(db_session: Session, content_dir: Path):
+    import_content(db_session, content_dir)
+    topic = roadmap_service.get_topic(db_session, "peremennye")
+    roadmap_service.set_topic_status(db_session, topic, TopicStatus.IN_PROGRESS)
+    card = topic.active_cards[0]
+    cards_service.grade_card(db_session, card, Grade.GOOD, date(2026, 3, 2))
+
+    # Меняем оборот первой карточки и убираем третью.
+    path = content_dir / "01-fundament" / "01-python" / "01-peremennye.cards.yaml"
+    write_file(
+        path,
+        "- front: Что делает оператор //?\n  back: Новый текст ответа.\n"
+        "- front: Чем = отличается от ==?\n  back: Первый присваивает, второй сравнивает.\n",
+    )
+    import_content(db_session, content_dir)
+
+    topic = roadmap_service.get_topic(db_session, "peremennye")
+    assert len(topic.active_cards) == 2
+    assert topic.active_cards[0].back_md == "Новый текст ответа."
+    assert topic.active_cards[0].state.due_date == date(2026, 3, 3)  # расписание на месте
+    assert count(db_session, Card) == 3  # убранная карточка скрыта, но не удалена

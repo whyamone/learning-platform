@@ -76,6 +76,35 @@
 </section>
 {% endif %}
 
+{% if topic.questions or topic.active_cards %}
+<section class="card">
+  <h2>Проверь себя</h2>
+  {% if topic.questions %}
+  <p>
+    Квиз из {{ topic.questions | length }} вопросов.
+    {% if quiz_stats.attempts %}
+    <span class="muted">Попыток: {{ quiz_stats.attempts }} · лучший результат: {{ quiz_stats.best_percent }}% · последний: {{ quiz_stats.last_percent }}%</span>
+    {% else %}
+    <span class="muted">Ты его ещё не проходил.</span>
+    {% endif %}
+  </p>
+  <a class="btn btn-primary" href="{{ url_for('quiz_page', slug=topic.slug) }}">
+    {{ "Пройти ещё раз" if quiz_stats.attempts else "Пройти квиз" }}
+  </a>
+  {% endif %}
+  {% if topic.active_cards %}
+  <p class="muted cards-note">
+    Карточек для повторения: {{ topic.active_cards | length }}.
+    {% if topic.status.value == "not_started" %}
+    Они появятся в разделе «Повторение», когда ты начнёшь тему.
+    {% else %}
+    Они показываются в разделе <a href="{{ url_for('review_page') }}">«Повторение»</a> по расписанию.
+    {% endif %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if topic.links %}
 <section class="card">
   <h2>Материалы</h2>

@@ -20,7 +20,9 @@ from app.models.progress import TopicStatus
 
 if TYPE_CHECKING:
     # Импорт только для подсказок типов — чтобы файлы не импортировали друг друга по кругу.
+    from app.models.card import Card
     from app.models.progress import TopicProgress
+    from app.models.quiz import QuizAttempt, QuizQuestion
 
 
 class Stage(Base):
@@ -118,6 +120,21 @@ class Topic(Base):
     progress: Mapped[TopicProgress | None] = relationship(
         back_populates="topic", cascade="all, delete-orphan", uselist=False
     )
+
+    # Вопросы квиза и карточки для повторения (файлы .quiz.yaml и .cards.yaml).
+    questions: Mapped[list[QuizQuestion]] = relationship(
+        back_populates="topic", order_by="QuizQuestion.position", cascade="all, delete-orphan"
+    )
+    quiz_attempts: Mapped[list[QuizAttempt]] = relationship(
+        back_populates="topic", cascade="all, delete-orphan"
+    )
+    cards: Mapped[list[Card]] = relationship(
+        back_populates="topic", order_by="Card.position", cascade="all, delete-orphan"
+    )
+
+    @property
+    def active_cards(self) -> list[Card]:
+        return [card for card in self.cards if card.is_active]
 
     @property
     def status(self) -> TopicStatus:

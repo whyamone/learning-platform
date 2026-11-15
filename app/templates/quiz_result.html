@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Результат квиза: {{ topic.title }} · {{ app_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumbs" aria-label="Путь">
+  <a href="{{ url_for('roadmap') }}">Дорожная карта</a>
+  <span aria-hidden="true">›</span>
+  <a href="{{ url_for('topic_page', slug=topic.slug) }}">{{ topic.title }}</a>
+  <span aria-hidden="true">›</span> Результат
+</nav>
+
+<section class="card {{ 'card-accent' if result.is_passed }}">
+  <p class="card-label">{{ topic.title }}</p>
+  <h1 class="score">{{ result.correct }} из {{ result.total }} · {{ result.percent }}%</h1>
+  {% if result.is_passed %}
+  <p>Квиз пройден. Если практика тоже сделана, тему можно отмечать как готовую.</p>
+  {% else %}
+  <p>Пока не хватает до 80%. Посмотри разбор ниже, перечитай нужные разделы и попробуй ещё раз — попытки не ограничены.</p>
+  {% endif %}
+  <p class="muted">Попыток: {{ stats.attempts }} · лучший результат: {{ stats.best_percent }}%</p>
+  <a class="btn btn-primary" href="{{ url_for('topic_page', slug=topic.slug) }}">Вернуться к теме</a>
+  <a class="btn" href="{{ url_for('quiz_page', slug=topic.slug) }}">Пройти ещё раз</a>
+</section>
+
+<h2 class="section-title">Разбор</h2>
+
+{% for item in result.items %}
+{% set question = item.question %}
+<section class="card question {{ 'question-correct' if item.is_correct else 'question-wrong' }}">
+  <p class="question-text">
+    {{ loop.index }}. {{ question.text }}
+    <span class="badge {{ 'badge-done' if item.is_correct else 'badge-wrong' }}">
+      {{ "верно" if item.is_correct else ("нет ответа" if item.chosen_index is none else "неверно") }}
+    </span>
+  </p>
+  <ul class="option-review">
+    {% for option in question.options %}
+    {# Отмечаем правильный вариант и тот, что был выбран по ошибке. #}
+    <li class="{{ 'is-right' if loop.index0 == question.correct_index }} {{ 'is-chosen-wrong' if loop.index0 == item.chosen_index and not item.is_correct }}">
+      {{ option }}
+      {% if loop.index0 == question.correct_index %}<span class="option-note">— правильный ответ</span>{% endif %}
+      {% if loop.index0 == item.chosen_index and not item.is_correct %}<span class="option-note">— твой ответ</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% if question.explanation %}
+  <p class="explanation">{{ question.explanation }}</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

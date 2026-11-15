@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Повторение · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Повторить сегодня</h1>
+  <p class="lead">
+    Вспомни ответ, затем открой его и честно оцени себя. От оценки зависит,
+    когда карточка вернётся: лёгкие — через недели, трудные — завтра.
+  </p>
+</section>
+
+{% include "partials/review_card.html" %}
+{% endblock %}
