@@ -1,0 +1,26 @@
+- question: Какая команда SQL выбирает данные из таблицы?
+  options:
+    - SELECT
+    - INSERT
+    - UPDATE
+    - DELETE
+  answer: 1
+  explanation: INSERT добавляет строки, UPDATE изменяет, DELETE удаляет.
+
+- question: Что делает условие WHERE?
+  options:
+    - Ограничивает количество строк
+    - Объединяет таблицы
+    - Оставляет только строки, подходящие под условие
+    - Сортирует результат
+  answer: 3
+  explanation: Сортирует ORDER BY, ограничивает количество LIMIT.
+
+- question: Как проверить, что в столбце нет значения?
+  options:
+    - WHERE column IS NULL
+    - WHERE column = NULL
+    - WHERE column = ''
+    - WHERE column == 0
+  answer: 1
+  explanation: NULL означает отсутствие значения, и сравнивать с ним через = нельзя.
