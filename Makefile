@@ -3,7 +3,7 @@
 # Список всех команд: make help
 
 # Команды ниже — не имена файлов, а просто действия.
-.PHONY: help up up-d down logs build test lint format shell migrate migration
+.PHONY: help up up-d down logs build test lint format shell migrate migration check-links
 
 help: ## Показать список команд
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  make %-10s %s\n", $$1, $$2}'
@@ -40,3 +40,6 @@ migrate: ## Применить миграции базы данных
 
 migration: ## Создать миграцию: make migration name=add_topics
 	docker compose run --rm -v "$(CURDIR)":/app app alembic revision --autogenerate -m "$(name)"
+
+check-links: ## Проверить, что ссылки в учебных материалах открываются (нужен интернет)
+	docker compose run --rm app python -m app.tools.check_links

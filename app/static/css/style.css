@@ -199,7 +199,18 @@ code {
 .stage-progress-name { display: block; margin-bottom: 4px; }
 
 /* --- Дорожная карта --- */
-.stage { margin-bottom: 40px; }
+.stage-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+.stage-jump a {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.stage-jump a:hover { color: var(--text); border-color: var(--muted); }
+/* scroll-margin-top: при переходе по якорю заголовок не прилипает к краю окна. */
+.stage { margin-bottom: 40px; scroll-margin-top: 16px; }
 .stage-head { margin-bottom: 16px; }
 .stage-title { font-size: 1.5rem; margin-bottom: 4px; }
 .stage-head .muted { margin: 0 0 10px; }

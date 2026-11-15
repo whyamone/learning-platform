@@ -27,14 +27,27 @@
 </section>
 {% endif %}
 
+{# Быстрый переход к этапу: ссылки ведут к якорям id="stage-..." ниже на странице. #}
+{% if stage_views | length > 1 %}
+<nav class="stage-jump" aria-label="Этапы">
+  {% for view in stage_views %}
+  <a href="#stage-{{ view.stage.slug }}">{{ view.stage.position }}. {{ view.stage.title }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
 {% for view in stage_views %}
 {% set stage = view.stage %}
-<section class="stage">
+<section class="stage" id="stage-{{ stage.slug }}">
   <header class="stage-head">
     <p class="eyebrow">
       Этап {{ stage.position }} ·
       {% if stage.month_from == stage.month_to %}месяц {{ stage.month_from }}
       {% else %}месяцы {{ stage.month_from }}–{{ stage.month_to }}{% endif %}
+      {% if stage.active_topics %}
+      · тем: {{ stage.active_topics | length }}
+      · примерно {{ stage.active_topics | sum(attribute="estimated_hours") | hours }}
+      {% endif %}
     </p>
     <h2 class="stage-title">{{ stage.title }}</h2>
     {% if stage.description %}<p class="muted">{{ stage.description }}</p>{% endif %}
