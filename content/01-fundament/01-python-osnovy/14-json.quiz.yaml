@@ -1,0 +1,44 @@
+- question: Что делает json.loads(text)?
+  options:
+    - Загружает файл из интернета
+    - Превращает строку с JSON в словари и списки Python
+    - Сохраняет данные в файл
+    - Превращает словарь в строку
+  answer: 2
+  explanation: 'loads — load string: разбор JSON из строки.'
+
+- question: Чему в Python соответствует значение null из JSON?
+  options:
+    - Пустой строке
+    - None
+    - 'False'
+    - '0'
+  answer: 2
+  explanation: null превращается в None, true и false — в True и False.
+
+- question: Зачем в json.dumps() передают ensure_ascii=False?
+  options:
+    - Чтобы русские буквы сохранялись как есть, а не кодами
+    - Чтобы отсортировать ключи
+    - Чтобы сжать результат
+    - Чтобы расставить отступы
+  answer: 1
+  explanation: Без этого параметра кириллица заменяется последовательностями вида и.
+
+- question: Какая из строк является корректным JSON?
+  options:
+    - '{"name": "sw-1", "ports": 24,}'
+    - '{"name": "sw-1", "ports": 24}'
+    - '{name: "sw-1", ports: 24}'
+    - '{''name'': ''sw-1'', ''ports'': 24}'
+  answer: 2
+  explanation: В JSON строки и ключи пишутся только в двойных кавычках, запятая после последнего элемента запрещена.
+
+- question: Чем json.dump() отличается от json.dumps()?
+  options:
+    - dump() читает, dumps() пишет
+    - Ничем
+    - dump() пишет в файл, dumps() возвращает строку
+    - dumps() работает только со списками
+  answer: 3
+  explanation: Буква s означает string. Функции без неё работают с файлами.

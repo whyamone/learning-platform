@@ -1,0 +1,44 @@
+- question: Что произойдёт при обращении device["vendor"], если такого ключа нет?
+  options:
+    - Ключ будет создан автоматически
+    - Вернётся пустая строка
+    - Возникнет KeyError
+    - Вернётся None
+  answer: 3
+  explanation: Обращение по несуществующему ключу вызывает KeyError. Безопасный способ — метод get().
+
+- question: Что вернёт device.get("vendor", "неизвестно"), если ключа vendor нет?
+  options:
+    - Ошибку KeyError
+    - Пустой словарь
+    - Строку "неизвестно"
+    - None
+  answer: 3
+  explanation: Второй аргумент get() — значение по умолчанию на случай отсутствия ключа.
+
+- question: Как перебрать словарь сразу по ключам и значениям?
+  options:
+    - 'for key, value in device:'
+    - 'for key in device.values():'
+    - 'for key, value in device.items():'
+    - 'for device in key, value:'
+  answer: 3
+  explanation: Метод items() выдаёт пары, которые распаковываются в две переменные.
+
+- question: Что может быть ключом словаря?
+  options:
+    - Другой словарь
+    - Список
+    - Строка, число или кортеж
+    - Множество
+  answer: 3
+  explanation: Ключом может быть только неизменяемое значение. Списки, словари и множества изменяемы.
+
+- question: 'data = {"interfaces": [{"name": "Gi0/1"}]}. Как получить строку Gi0/1?'
+  options:
+    - data[0]["name"]
+    - data["name"]
+    - data["interfaces"][0]["name"]
+    - data["interfaces"]["name"]
+  answer: 3
+  explanation: По ключу interfaces лежит список, [0] берёт его первый элемент — словарь, из него достаём name.

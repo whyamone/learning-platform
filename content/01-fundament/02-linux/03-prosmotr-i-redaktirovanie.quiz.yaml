@@ -1,0 +1,44 @@
+- question: Чем лучше всего открыть лог размером в несколько гигабайт?
+  options:
+    - less
+    - echo
+    - cat
+    - nano
+  answer: 1
+  explanation: less не загружает файл в память целиком и позволяет листать и искать.
+
+- question: Что делает tail -f app.log?
+  options:
+    - Сортирует строки файла
+    - Удаляет последние строки файла
+    - Показывает последние строки и продолжает выводить новые по мере появления
+    - Показывает первые десять строк
+  answer: 3
+  explanation: Опция -f (follow) следит за файлом. Выход — Ctrl+C.
+
+- question: Как сохранить файл и выйти из vim?
+  options:
+    - Нажать Esc, затем набрать :wq и Enter
+    - Набрать exit
+    - Нажать Ctrl+S, затем Ctrl+Q
+    - Нажать Ctrl+X
+  answer: 1
+  explanation: :w — сохранить, :q — выйти. Вместе — :wq. Выход без сохранения — :q!.
+
+- question: Как в less найти слово error?
+  options:
+    - Набрать find error
+    - Нажать Ctrl+F
+    - Нажать F3
+    - Набрать /error и нажать Enter
+  answer: 4
+  explanation: Поиск начинается с косой черты. Клавиша n переходит к следующему совпадению.
+
+- question: Какая команда покажет первые пять строк файла?
+  options:
+    - tail -n 5 file.txt
+    - cat -5 file.txt
+    - less 5 file.txt
+    - head -n 5 file.txt
+  answer: 4
+  explanation: head показывает начало файла, tail — конец.

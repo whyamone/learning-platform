@@ -1,0 +1,44 @@
+- question: Какой из двух ключей можно показывать другим?
+  options:
+    - Оба
+    - Закрытый
+    - Ни один
+    - Открытый — файл с расширением .pub
+  answer: 4
+  explanation: Открытый ключ кладут на серверы. Закрытый никогда никуда не передают.
+
+- question: Какой командой создать пару ключей современного типа?
+  options:
+    - ssh-copy-id
+    - ssh-keygen -t ed25519
+    - ssh-add --new
+    - keygen rsa
+  answer: 2
+  explanation: ed25519 — современный и надёжный тип ключа.
+
+- question: В каком файле на сервере хранятся открытые ключи, которым разрешён вход?
+  options:
+    - ~/.ssh/known_hosts
+    - ~/.ssh/authorized_keys
+    - ~/.ssh/config
+    - /etc/passwd
+  answer: 2
+  explanation: known_hosts на клиенте хранит отпечатки серверов, config — настройки подключений.
+
+- question: При подключении появилось предупреждение REMOTE HOST IDENTIFICATION HAS CHANGED. Что это значит?
+  options:
+    - На сервере закончилось место
+    - Истёк срок действия твоего пароля
+    - 'Ключ сервера изменился: его переустановили или кто-то выдаёт себя за него'
+    - Изменился твой IP-адрес
+  answer: 3
+  explanation: Предупреждение нельзя игнорировать, пока причина не выяснена.
+
+- question: Как скопировать файл report.txt на сервер lab в папку /tmp?
+  options:
+    - scp report.txt lab:/tmp/
+    - ssh report.txt lab:/tmp/
+    - mv report.txt /tmp/lab
+    - cp report.txt lab/tmp
+  answer: 1
+  explanation: В scp двоеточие отделяет имя узла от пути на нём.

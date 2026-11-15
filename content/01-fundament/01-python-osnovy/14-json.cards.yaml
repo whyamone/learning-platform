@@ -1,0 +1,14 @@
+- front: Что такое JSON?
+  back: Текстовый формат обмена данными. Похож на словари и списки Python, но это текст, который нужно разобрать.
+
+- front: Назови четыре главные функции модуля `json`.
+  back: '`loads` — из строки в данные, `dumps` — из данных в строку, `load` — из файла, `dump` — в файл.'
+
+- front: Чему соответствуют `true`, `false` и `null` из JSON?
+  back: '`True`, `False` и `None` в Python.'
+
+- front: Как красиво вывести JSON с русскими буквами?
+  back: '`json.dumps(data, ensure_ascii=False, indent=2)`'
+
+- front: Какая ошибка возникает при разборе некорректного JSON?
+  back: '`json.JSONDecodeError`'
