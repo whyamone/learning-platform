@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Главная · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">с нуля → junior AI-разработчик</p>
+  <h1>Платформа запущена</h1>
+  <p class="lead">
+    Каркас готов: сервер отвечает, база данных подключена.
+    Дальше здесь появятся дорожная карта, план недели и дашборд.
+  </p>
+</section>
+
+<section class="card">
+  <h2>Состояние</h2>
+  {# HTMX: при загрузке страницы запросить /partials/status
+     и вставить ответ сервера внутрь этого блока. #}
+  <div hx-get="{{ url_for('status_partial') }}" hx-trigger="load" hx-swap="innerHTML">
+    <p class="muted">Проверяю…</p>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Что будет дальше</h2>
+  <ol class="steps">
+    <li class="is-done">Каркас: сервер, база, Docker, тесты</li>
+    <li>Дорожная карта: этапы, модули, темы и статусы</li>
+    <li>Учебный контент: Python, Linux, Git и заготовки остальных этапов</li>
+    <li>Квизы и карточки для повторения</li>
+    <li>Учёт времени, журнал и дашборд</li>
+    <li>Планировщик недели</li>
+    <li>ИИ-наставник на локальной модели</li>
+  </ol>
+</section>
+{% endblock %}

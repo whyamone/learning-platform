@@ -1,0 +1,37 @@
+# docker-compose.yml описывает, КАК запускать контейнер из образа:
+# какие порты открыть, какие папки подключить, как проверять здоровье.
+# Запуск: docker compose up
+
+services:
+  app:
+    # Собрать образ по Dockerfile из текущей папки.
+    build: .
+    image: learning-platform:local
+
+    # Порт в формате «на компьютере:в контейнере».
+    # 127.0.0.1 значит: сайт открывается только с этого компьютера, из сети он не виден.
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    # Тома (volumes) — папки компьютера, «проброшенные» внутрь контейнера.
+    volumes:
+      # База данных лежит у тебя в папке data/ и не пропадает при пересборке.
+      - ./data:/app/data
+      # Учебные материалы: правишь файл в content/ — контейнер видит изменения.
+      - ./content:/app/content
+
+    # Настройки из файла .env (файл необязателен: без него работают значения по умолчанию).
+    env_file:
+      - path: .env
+        required: false
+
+    # Каждые 30 секунд Docker открывает /health и проверяет, что приложение живо.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # Если приложение упало — поднять заново (пока ты сам его не остановишь).
+    restart: unless-stopped

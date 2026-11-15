@@ -1,0 +1,132 @@
+/* Тёмная тема платформы.
+   Все цвета и размеры собраны в переменных (:root), чтобы менять их в одном месте. */
+
+:root {
+  --bg: #0f1216;          /* фон страницы */
+  --surface: #171b21;     /* фон карточек */
+  --surface-2: #1f242c;   /* фон вложенных элементов */
+  --border: #2a313b;
+  --text: #e4e8ee;
+  --muted: #8f9aa8;       /* второстепенный текст */
+  --accent: #5fb3a1;      /* основной цвет: ссылки, отметки «готово» */
+  --accent-strong: #7fd0bd;
+  --warn: #e0b060;
+  --error: #e07a7a;
+
+  --radius: 10px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, "DejaVu Sans Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a { color: var(--accent-strong); }
+a:hover { color: var(--text); }
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5em; }
+h1 { font-size: 2rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.15rem; }
+
+/* Колонка с содержимым: не шире 960px, с отступами по бокам. */
+.container {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+main.container { flex: 1; padding-top: 32px; padding-bottom: 48px; }
+
+/* --- Шапка --- */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-height: 56px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.brand-mark {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav-link {
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link:hover { color: var(--text); background: var(--surface-2); }
+.nav-link.is-active { color: var(--text); background: var(--surface-2); }
+
+/* --- Главный блок страницы --- */
+.hero { padding: 16px 0 24px; }
+.eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+.lead { margin: 0; max-width: 60ch; color: var(--muted); font-size: 1.05rem; }
+
+/* --- Карточка --- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.muted { color: var(--muted); }
+
+/* --- Список состояния --- */
+.status-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.status-list li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.dot-ok { background: var(--accent); }
+.dot-error { background: var(--error); }
+
+/* --- Список шагов --- */
+.steps { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; color: var(--muted); }
+.steps .is-done { color: var(--text); }
+.steps .is-done::after { content: " ✓"; color: var(--accent); }
+
+/* --- Подвал --- */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 16px 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}

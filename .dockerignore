@@ -1,0 +1,11 @@
+# Что НЕ копировать в образ: служебное, локальное и личное.
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.env
+# База и контент подключаются как папки (см. volumes в docker-compose.yml).
+data
+content

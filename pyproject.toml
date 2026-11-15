@@ -1,0 +1,27 @@
+# Настройки инструментов разработки.
+# Зависимости лежат в requirements.txt — так новичку проще их читать.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E, W — стиль (pycodestyle); F — реальные ошибки (pyflakes);
+# I — порядок импортов; B — частые баги; UP — устаревший синтаксис.
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# В FastAPI принято писать Depends(...) в значениях по умолчанию —
+# правило B008 на это ругается, отключаем его для маршрутов.
+"app/routers/*.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Чтобы тесты могли писать `from app import ...`.
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = [
+    # Starlette предупреждает, что в будущем тестовому клиенту понадобится другая
+    # библиотека вместо httpx. Сейчас всё работает; прячем шум, чтобы не мешал.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
