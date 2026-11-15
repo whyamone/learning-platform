@@ -6,6 +6,5 @@ __pycache__
 .pytest_cache
 .ruff_cache
 .env
-# База и контент подключаются как папки (см. volumes в docker-compose.yml).
+# База подключается как папка с компьютера (см. volumes в docker-compose.yml).
 data
-content

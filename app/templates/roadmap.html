@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "macros.html" import status_badge, progress_bar %}
+
+{% block title %}Дорожная карта · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero hero-row">
+  <div>
+    <h1>Дорожная карта</h1>
+    <p class="lead">Этапы → модули → темы. Нажми на тему, чтобы открыть теорию и практику.</p>
+  </div>
+  {# Обычная HTML-форма: кнопка отправляет POST-запрос, сервер перечитывает content/. #}
+  <form method="post" action="{{ url_for('reimport_content') }}">
+    <button class="btn" type="submit" title="Заново прочитать файлы из папки content/">Перечитать материалы</button>
+  </form>
+</section>
+
+{# Замечания к файлам с материалами — чтобы ошибку в файле было видно сразу. #}
+{% if import_report and import_report.problems %}
+<section class="card card-warn">
+  <h2>Замечания к материалам ({{ import_report.problems | length }})</h2>
+  <ul class="problem-list">
+    {% for problem in import_report.problems %}
+    <li><code>{{ problem.path }}</code> — {{ problem.message }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% for view in stage_views %}
+{% set stage = view.stage %}
+<section class="stage">
+  <header class="stage-head">
+    <p class="eyebrow">
+      Этап {{ stage.position }} ·
+      {% if stage.month_from == stage.month_to %}месяц {{ stage.month_from }}
+      {% else %}месяцы {{ stage.month_from }}–{{ stage.month_to }}{% endif %}
+    </p>
+    <h2 class="stage-title">{{ stage.title }}</h2>
+    {% if stage.description %}<p class="muted">{{ stage.description }}</p>{% endif %}
+    {{ progress_bar(view.progress) }}
+  </header>
+
+  {% for module in stage.active_modules %}
+  <div class="card module">
+    <h3 class="module-title">{{ module.title }}</h3>
+    {% if module.description %}<p class="muted module-desc">{{ module.description }}</p>{% endif %}
+
+    {% if module.active_topics %}
+    <ol class="topic-list">
+      {% for topic in module.active_topics %}
+      <li class="topic-row">
+        <a class="topic-link" href="{{ url_for('topic_page', slug=topic.slug) }}">{{ topic.title }}</a>
+        <span class="topic-meta">
+          {% if topic.is_stub %}<span class="badge badge-stub" title="Подробная теория ещё не написана">заготовка</span>{% endif %}
+          <span class="muted">{{ topic.estimated_hours | hours }}</span>
+          {{ status_badge(topic.status) }}
+        </span>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="muted">Темы появятся позже.</p>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="muted">Модули этого этапа появятся позже.</p>
+  {% endfor %}
+</section>
+{% else %}
+<section class="card">
+  <h2>Карта пуста</h2>
+  <p class="muted">В папке <code>content/</code> пока нет этапов. Как добавить материалы — в README, раздел «Как добавить тему».</p>
+</section>
+{% endfor %}
+{% endblock %}

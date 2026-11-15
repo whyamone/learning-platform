@@ -12,6 +12,7 @@
   --accent-strong: #7fd0bd;
   --warn: #e0b060;
   --error: #e07a7a;
+  --info: #8fb4e8;         /* статус «повторить» */
 
   --radius: 10px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -129,4 +130,191 @@ main.container { flex: 1; padding-top: 32px; padding-bottom: 48px; }
   padding: 16px 0;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+/* ===================== Этап 1: дорожная карта и страница темы ===================== */
+
+h3 { font-size: 1.05rem; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+/* --- Кнопки --- */
+.btn {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); color: var(--text); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #0c1513; font-weight: 600; }
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: #0c1513; }
+
+/* --- Заголовок страницы с кнопкой справа --- */
+.hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* --- Варианты карточек --- */
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.card-label { margin: 0 0 4px; font-size: 0.8rem; color: var(--accent); font-family: var(--font-mono); }
+.card-warn { border-color: var(--warn); }
+.card-accent { border-left: 3px solid var(--accent); }
+.next-title { font-size: 1.4rem; margin-bottom: 4px; }
+.next-title a { color: var(--text); text-decoration: none; }
+.next-title a:hover { color: var(--accent-strong); }
+.problem-list { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+
+/* --- Метки статусов --- */
+.badge {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.badge-in_progress { color: var(--warn); border-color: var(--warn); }
+.badge-done { color: #0c1513; background: var(--accent); border-color: var(--accent); }
+.badge-review { color: var(--info); border-color: var(--info); }
+.badge-stub { border-style: dashed; }
+
+/* --- Полоска прогресса --- */
+.progress { display: flex; align-items: center; gap: 12px; }
+.progress-track { flex: 1; height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+.progress-label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.stage-progress-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; }
+.stage-progress-name { display: block; margin-bottom: 4px; }
+
+/* --- Дорожная карта --- */
+.stage { margin-bottom: 40px; }
+.stage-head { margin-bottom: 16px; }
+.stage-title { font-size: 1.5rem; margin-bottom: 4px; }
+.stage-head .muted { margin: 0 0 10px; }
+.module-title { margin-bottom: 2px; }
+.module-desc { margin: 0 0 8px; }
+
+.topic-list { list-style: none; margin: 8px 0 0; padding: 0; counter-reset: topic; }
+.topic-row {
+  counter-increment: topic;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+.topic-link { color: var(--text); text-decoration: none; }
+.topic-link::before { content: counter(topic) ". "; color: var(--muted); }
+.topic-link:hover { color: var(--accent-strong); }
+.topic-meta { display: inline-flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+
+/* --- Страница темы --- */
+.breadcrumbs { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+.topic-head { margin-bottom: 20px; }
+.topic-facts { margin: 8px 0 14px; font-size: 0.9rem; }
+
+.status-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.status-picker-label { color: var(--muted); font-size: 0.9rem; }
+.status-buttons { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.status-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.status-btn:hover { color: var(--text); border-color: var(--muted); }
+.status-btn.is-current { color: var(--text); background: var(--surface-2); border-color: var(--muted); font-weight: 600; }
+.status-btn-in_progress.is-current { color: var(--warn); border-color: var(--warn); }
+.status-btn-done.is-current { color: #0c1513; background: var(--accent); border-color: var(--accent); }
+.status-btn-review.is-current { color: var(--info); border-color: var(--info); }
+
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li { padding: 4px 12px; background: var(--surface-2); border-radius: 999px; font-size: 0.9rem; }
+
+.glossary { margin: 0; display: grid; gap: 6px; }
+.glossary div { display: grid; grid-template-columns: minmax(120px, 220px) 1fr; gap: 12px; padding: 6px 0; border-top: 1px solid var(--border); }
+.glossary dt { font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-strong); overflow-wrap: anywhere; }
+.glossary dd { margin: 0; }
+
+.check-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.check-list li { padding-left: 1.6em; position: relative; }
+.check-list li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); }
+
+.link-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.link-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.link-tags { display: inline-flex; gap: 6px; }
+.tag { font-size: 0.75rem; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 0 7px; white-space: nowrap; }
+.tag-en { color: var(--warn); }
+
+.topic-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.topic-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.topic-nav-link:hover { border-color: var(--muted); color: var(--text); }
+.topic-nav-next { text-align: right; }
+.source-note { margin-top: 20px; font-size: 0.8rem; }
+
+/* --- Текст из Markdown: теория и практика --- */
+.prose { max-width: 72ch; overflow-wrap: break-word; }
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+.prose h1, .prose h2, .prose h3, .prose h4 { margin: 1.6em 0 0.5em; }
+.prose h1 { font-size: 1.3rem; }
+.prose h2 { font-size: 1.15rem; padding-top: 0.6em; border-top: 1px solid var(--border); }
+.prose h3 { font-size: 1.02rem; }
+.prose p, .prose ul, .prose ol, .prose pre, .prose table, .prose blockquote { margin: 0 0 1em; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose li { margin-bottom: 0.3em; }
+.prose pre {
+  background: #0b0e12;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;      /* длинные строки кода прокручиваются, а не ломают страницу */
+  line-height: 1.5;
+}
+.prose pre code { background: none; padding: 0; font-size: 0.88rem; }
+.prose blockquote {
+  padding: 8px 14px;
+  border-left: 3px solid var(--warn);
+  background: var(--surface-2);
+  border-radius: 0 8px 8px 0;
+  color: var(--text);
+}
+.prose blockquote > :last-child { margin-bottom: 0; }
+.prose table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; }
+.prose th, .prose td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+.prose th { background: var(--surface-2); }
+
+@media (max-width: 560px) {
+  .topic-nav { grid-template-columns: 1fr; }
+  .topic-nav-next { text-align: left; }
+  .glossary div { grid-template-columns: 1fr; gap: 0; }
+  .card { padding: 16px; }
 }

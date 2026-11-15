@@ -1,16 +1,53 @@
 {% extends "base.html" %}
+{% from "macros.html" import status_badge, progress_bar %}
 
 {% block title %}Главная · {{ app_name }}{% endblock %}
 
 {% block content %}
 <section class="hero">
   <p class="eyebrow">с нуля → junior AI-разработчик</p>
-  <h1>Платформа запущена</h1>
-  <p class="lead">
-    Каркас готов: сервер отвечает, база данных подключена.
-    Дальше здесь появятся дорожная карта, план недели и дашборд.
-  </p>
+  <h1>Что учим сегодня</h1>
 </section>
+
+<section class="card">
+  {% if next_topic %}
+    <p class="card-label">
+      {{ "Продолжить" if next_topic.status.value == "in_progress" else "Следующая тема" }}
+    </p>
+    <h2 class="next-title">
+      <a href="{{ url_for('topic_page', slug=next_topic.slug) }}">{{ next_topic.title }}</a>
+    </h2>
+    <p class="muted">
+      {{ next_topic.module.stage.title }} › {{ next_topic.module.title }}
+      · примерно {{ next_topic.estimated_hours | hours }}
+    </p>
+    {% if next_topic.summary %}<p>{{ next_topic.summary }}</p>{% endif %}
+    <a class="btn btn-primary" href="{{ url_for('topic_page', slug=next_topic.slug) }}">Открыть тему</a>
+  {% elif total_progress.total == 0 %}
+    <h2>Тем пока нет</h2>
+    <p class="muted">Добавь учебные материалы в папку <code>content/</code> и перечитай их на странице дорожной карты.</p>
+  {% else %}
+    <h2>Все темы пройдены</h2>
+    <p class="muted">Дорожная карта закрыта полностью. Можно вернуться к темам с пометкой «Повторить».</p>
+  {% endif %}
+</section>
+
+{% if stage_views %}
+<section class="card">
+  <div class="card-head">
+    <h2>Прогресс по этапам</h2>
+    <a href="{{ url_for('roadmap') }}">Вся карта →</a>
+  </div>
+  <ul class="stage-progress-list">
+    {% for view in stage_views %}
+    <li>
+      <span class="stage-progress-name">{{ view.stage.position }}. {{ view.stage.title }}</span>
+      {{ progress_bar(view.progress) }}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 
 <section class="card">
   <h2>Состояние</h2>
@@ -19,18 +56,5 @@
   <div hx-get="{{ url_for('status_partial') }}" hx-trigger="load" hx-swap="innerHTML">
     <p class="muted">Проверяю…</p>
   </div>
-</section>
-
-<section class="card">
-  <h2>Что будет дальше</h2>
-  <ol class="steps">
-    <li class="is-done">Каркас: сервер, база, Docker, тесты</li>
-    <li>Дорожная карта: этапы, модули, темы и статусы</li>
-    <li>Учебный контент: Python, Linux, Git и заготовки остальных этапов</li>
-    <li>Квизы и карточки для повторения</li>
-    <li>Учёт времени, журнал и дашборд</li>
-    <li>Планировщик недели</li>
-    <li>ИИ-наставник на локальной модели</li>
-  </ol>
 </section>
 {% endblock %}

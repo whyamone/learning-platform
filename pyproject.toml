@@ -4,6 +4,9 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Учебные материалы не трогаем: ruff умеет «причёсывать» примеры кода внутри
+# Markdown, а в уроках код иногда нарочно написан не по правилам.
+extend-exclude = ["content"]
 
 [tool.ruff.lint]
 # E, W — стиль (pycodestyle); F — реальные ошибки (pyflakes);

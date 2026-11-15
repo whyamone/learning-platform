@@ -1,0 +1,22 @@
+{# Блок выбора статуса темы.
+   Используется дважды: внутри страницы темы и как ответ сервера на нажатие кнопки.
+
+   Как это работает с HTMX:
+     hx-post    — при отправке формы сделать POST-запрос на этот адрес;
+     hx-target  — куда вставить ответ сервера;
+     hx-swap    — outerHTML: заменить блок целиком на пришедший HTML.
+   Без JavaScript форма тоже работает — просто с перезагрузкой страницы. #}
+<div id="topic-status" class="status-picker">
+  <span class="status-picker-label">Статус:</span>
+  <form method="post" action="{{ url_for('change_topic_status', slug=topic.slug) }}"
+        hx-post="{{ url_for('change_topic_status', slug=topic.slug) }}"
+        hx-target="#topic-status" hx-swap="outerHTML" class="status-buttons">
+    {% for status in all_statuses %}
+    <button type="submit" name="status" value="{{ status.value }}"
+            class="status-btn status-btn-{{ status.value }} {{ 'is-current' if topic.status == status }}"
+            {% if topic.status == status %}aria-pressed="true"{% endif %}>
+      {{ status.label }}
+    </button>
+    {% endfor %}
+  </form>
+</div>

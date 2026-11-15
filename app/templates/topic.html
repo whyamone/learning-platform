@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.title }} · {{ app_name }}{% endblock %}
+
+{% block content %}
+{# Подписи для типов материалов. #}
+{% set kind_labels = {"docs": "документация", "article": "статья", "course": "курс",
+                      "video": "видео", "book": "книга", "practice": "тренажёр"} %}
+
+<nav class="breadcrumbs" aria-label="Путь">
+  <a href="{{ url_for('roadmap') }}">Дорожная карта</a>
+  <span aria-hidden="true">›</span> {{ topic.module.stage.title }}
+  <span aria-hidden="true">›</span> {{ topic.module.title }}
+</nav>
+
+<header class="topic-head">
+  <h1>{{ topic.title }}</h1>
+  {% if topic.summary %}<p class="lead">{{ topic.summary }}</p>{% endif %}
+  <p class="muted topic-facts">
+    Примерно {{ topic.estimated_hours | hours }}
+    {% if topic.is_stub %}· <span class="badge badge-stub">заготовка</span> подробная теория ещё не написана{% endif %}
+  </p>
+  {% include "partials/topic_status.html" %}
+</header>
+
+{% if topic.goal %}
+<section class="card">
+  <h2>Цель</h2>
+  <p>{{ topic.goal }}</p>
+</section>
+{% endif %}
+
+{% if topic.concepts %}
+<section class="card">
+  <h2>Ключевые понятия</h2>
+  <ul class="chips">
+    {% for concept in topic.concepts %}<li>{{ concept }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if topic.theory_md %}
+<section class="card">
+  <h2>Теория</h2>
+  {# Фильтр markdown превращает текст из файла в HTML (см. app/services/markdown.py). #}
+  <div class="prose">{{ topic.theory_md | markdown }}</div>
+</section>
+{% endif %}
+
+{% if topic.glossary %}
+<section class="card">
+  <h2>Словарик</h2>
+  <p class="muted">Английские слова, которые встретятся в этой теме.</p>
+  <dl class="glossary">
+    {% for item in topic.glossary %}
+    <div><dt>{{ item.term }}</dt><dd>{{ item.meaning }}</dd></div>
+    {% endfor %}
+  </dl>
+</section>
+{% endif %}
+
+{% if topic.practice_md %}
+<section class="card card-accent">
+  <h2>Практика</h2>
+  <div class="prose">{{ topic.practice_md | markdown }}</div>
+</section>
+{% endif %}
+
+{% if topic.done_criteria %}
+<section class="card">
+  <h2>Критерий «готово»</h2>
+  <p class="muted">Тему можно отмечать пройденной, когда всё это правда:</p>
+  <ul class="check-list">
+    {% for criterion in topic.done_criteria %}<li>{{ criterion }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if topic.links %}
+<section class="card">
+  <h2>Материалы</h2>
+  <ul class="link-list">
+    {% for link in topic.links %}
+    <li>
+      {# rel="noopener noreferrer" — стандартная защита для ссылок, открываемых в новой вкладке. #}
+      <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.title }}</a>
+      <span class="link-tags">
+        <span class="tag">{{ kind_labels.get(link.kind, link.kind) }}</span>
+        <span class="tag {{ 'tag-en' if link.lang == 'en' }}">{{ "на английском" if link.lang == "en" else "на русском" }}</span>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<nav class="topic-nav" aria-label="Соседние темы">
+  {% if neighbors.previous %}
+  <a class="topic-nav-link" href="{{ url_for('topic_page', slug=neighbors.previous.slug) }}">
+    <span class="muted">← Предыдущая</span>
+    <span>{{ neighbors.previous.title }}</span>
+  </a>
+  {% else %}<span></span>{% endif %}
+  {% if neighbors.next %}
+  <a class="topic-nav-link topic-nav-next" href="{{ url_for('topic_page', slug=neighbors.next.slug) }}">
+    <span class="muted">Следующая →</span>
+    <span>{{ neighbors.next.title }}</span>
+  </a>
+  {% endif %}
+</nav>
+
+<p class="muted source-note">Файл темы: <code>content/{{ topic.source_path }}</code></p>
+{% endblock %}

@@ -7,10 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   {# Стили и скрипты лежат в проекте (app/static) — интернет не нужен. #}
+  <link rel="stylesheet" href="{{ url_for('static', path='css/pygments.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
   <script src="{{ url_for('static', path='js/htmx.min.js') }}" defer></script>
 </head>
 <body>
+  {# Адрес текущей страницы — чтобы подсветить нужный пункт меню. #}
+  {% set path = request.url.path %}
   <header class="site-header">
     <div class="container header-row">
       <a class="brand" href="{{ url_for('home') }}">
@@ -18,8 +21,11 @@
         {{ app_name }}
       </a>
       <nav class="nav" aria-label="Основное меню">
-        {# Пункты меню появятся по мере готовности разделов. #}
-        <a href="{{ url_for('home') }}" class="nav-link is-active">Главная</a>
+        {# Пункты меню появляются по мере готовности разделов. #}
+        <a href="{{ url_for('home') }}"
+           class="nav-link {{ 'is-active' if path == '/' }}">Главная</a>
+        <a href="{{ url_for('roadmap') }}"
+           class="nav-link {{ 'is-active' if path.startswith('/roadmap') or path.startswith('/topics') }}">Дорожная карта</a>
       </nav>
     </div>
   </header>
