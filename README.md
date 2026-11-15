@@ -12,6 +12,7 @@
 
 - [Установка Docker на Windows 11](#установка-docker-на-windows-11)
 - [Запуск](#запуск)
+- [Обновление](#обновление)
 - [Что внутри](#что-внутри)
 - [Как добавить тему](#как-добавить-тему)
 - [Команды](#команды)
@@ -109,6 +110,36 @@ docker compose up
 
 > Папка проекта видна и из Проводника Windows: введи в адресной строке
 > `\\wsl$\Ubuntu\home\ИМЯ_ПОЛЬЗОВАТЕЛЯ\projects\learning-platform`.
+
+## Обновление
+
+Когда в репозитории появилась новая версия, скачивать проект заново не нужно.
+Достаточно четырёх команд в терминале Ubuntu:
+
+```bash
+cd ~/projects/learning-platform
+```
+
+```bash
+docker compose down
+```
+
+```bash
+git pull
+```
+
+```bash
+docker compose up --build
+```
+
+| Команда | Что делает |
+|---|---|
+| `cd ...` | Переходит в папку проекта. Команды `docker compose` и `git` работают только из неё |
+| `docker compose down` | Останавливает запущенную старую версию |
+| `git pull` | Скачивает с GitHub изменения (`git clone` нужен только для первого скачивания) |
+| `docker compose up --build` | Пересобирает образ с новым кодом и запускает. Без `--build` запустится старая сборка |
+
+Прогресс при обновлении сохраняется: он лежит в файле `data/app.db`, который git не трогает.
 
 ## Что внутри
 
@@ -333,6 +364,9 @@ learning-platform/
 |---|---|
 | `Cannot connect to the Docker daemon` | Запусти Docker Desktop и дождись, пока значок перестанет мигать |
 | `docker: command not found` в Ubuntu | Docker Desktop → Settings → Resources → WSL integration → включи Ubuntu |
+| `no configuration file provided: not found` | Команда запущена не из папки проекта: сначала выполни `cd ~/projects/learning-platform` |
+| `fatal: destination path ... already exists` при `git clone` | Проект уже скачан. Чтобы получить новую версию, см. раздел «Обновление» |
+| После `git pull` на сайте ничего не изменилось | Запусти с пересборкой: `docker compose up --build` |
 | `port is already allocated` | Порт 8000 занят: выполни `make down` или закрой программу, которая его использует |
 | `make: command not found` | Выполни шаг 5 установки |
 | На карте блок «Замечания к материалам» | В файле из `content/` ошибка: в блоке указаны имя файла и причина. Исправь файл и нажми «Перечитать материалы» |
