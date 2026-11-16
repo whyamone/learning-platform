@@ -12,7 +12,6 @@ from app.services import dashboard as dashboard_service
 from app.services import planner as planner_service
 from app.services import roadmap as roadmap_service
 from app.services import schedule as schedule_service
-from app.services.system import database_is_available
 from app.templating import templates
 from app.timeutils import local_today
 
@@ -57,18 +56,4 @@ def home(
                 for stage in stages
             ],
         },
-    )
-
-
-@router.get("/partials/status", response_class=HTMLResponse)
-def status_partial(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
-    """Кусочек HTML с состоянием системы.
-
-    Это не целая страница, а фрагмент: HTMX запрашивает его с главной
-    страницы и вставляет в нужное место без перезагрузки.
-    """
-    return templates.TemplateResponse(
-        request,
-        "partials/status.html",
-        {"database_ok": database_is_available(db)},
     )

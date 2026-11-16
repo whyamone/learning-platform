@@ -3,7 +3,7 @@
 # Список всех команд: make help
 
 # Команды ниже — не имена файлов, а просто действия.
-.PHONY: help up up-d down logs build test lint format shell migrate migration check-links
+.PHONY: help up up-d down logs build test lint format shell migrate migration check-links backup
 
 help: ## Показать список команд
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  make %-10s %s\n", $$1, $$2}'
@@ -43,3 +43,6 @@ migration: ## Создать миграцию: make migration name=add_topics
 
 check-links: ## Проверить, что ссылки в учебных материалах открываются (нужен интернет)
 	docker compose run --rm app python -m app.tools.check_links
+
+backup: ## Сохранить копию базы с прогрессом в data/backups/
+	docker compose run --rm app python -m app.tools.backup

@@ -1,6 +1,8 @@
 """Страница «План»: недельный план и расписание занятий."""
 
-from fastapi import APIRouter, Depends, Request, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Form, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -60,18 +62,28 @@ def plan_page(
     )
 
 
+def _parse_hours(raw: str) -> float:
+    """Превратить текст из поля формы в число часов. Понимает и «1,5», и «1.5»."""
+    try:
+        return float(raw.replace(",", ".").strip() or 0)
+    except ValueError:
+        return 0.0  # непонятное значение считаем днём без занятий
+
+
 @router.post("/plan/schedule")
-async def save_schedule(request: Request, db: Session = Depends(get_db)) -> RedirectResponse:
-    """Сохранить расписание. Поля формы называются day0 … day6, значения — в часах."""
-    form = await request.form()
-
-    hours_by_day: dict[int, float] = {}
-    for day in range(7):
-        raw = str(form.get(f"day{day}", "0")).replace(",", ".").strip()
-        try:
-            hours_by_day[day] = float(raw or 0)
-        except ValueError:
-            hours_by_day[day] = 0  # непонятное значение считаем днём без занятий
-
-    schedule_service.save_schedule(db, hours_by_day)
+def save_schedule(
+    request: Request,
+    # Семь полей формы, по одному на день недели. Значения — в часах.
+    day0: Annotated[str, Form()] = "0",
+    day1: Annotated[str, Form()] = "0",
+    day2: Annotated[str, Form()] = "0",
+    day3: Annotated[str, Form()] = "0",
+    day4: Annotated[str, Form()] = "0",
+    day5: Annotated[str, Form()] = "0",
+    day6: Annotated[str, Form()] = "0",
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    """Сохранить расписание."""
+    values = [day0, day1, day2, day3, day4, day5, day6]
+    schedule_service.save_schedule(db, {day: _parse_hours(raw) for day, raw in enumerate(values)})
     return RedirectResponse(request.url_for("plan_page"), status_code=status.HTTP_303_SEE_OTHER)
