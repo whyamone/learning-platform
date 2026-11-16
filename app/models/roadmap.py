@@ -20,6 +20,7 @@ from app.models.progress import TopicStatus
 
 if TYPE_CHECKING:
     # Импорт только для подсказок типов — чтобы файлы не импортировали друг друга по кругу.
+    from app.models.activity import JournalEntry
     from app.models.card import Card
     from app.models.progress import TopicProgress
     from app.models.quiz import QuizAttempt, QuizQuestion
@@ -130,6 +131,12 @@ class Topic(Base):
     )
     cards: Mapped[list[Card]] = relationship(
         back_populates="topic", order_by="Card.position", cascade="all, delete-orphan"
+    )
+
+    journal_entries: Mapped[list[JournalEntry]] = relationship(
+        back_populates="topic",
+        order_by="JournalEntry.created_at.desc()",
+        cascade="all, delete-orphan",
     )
 
     @property

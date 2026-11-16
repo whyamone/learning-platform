@@ -28,9 +28,17 @@
            class="nav-link {{ 'is-active' if path.startswith('/roadmap') or path.startswith('/topics') }}">Дорожная карта</a>
         <a href="{{ url_for('review_page') }}"
            class="nav-link {{ 'is-active' if path.startswith('/review') }}">Повторение</a>
+        <a href="{{ url_for('time_page') }}"
+           class="nav-link {{ 'is-active' if path.startswith('/time') }}">Время</a>
+        <a href="{{ url_for('journal_page') }}"
+           class="nav-link {{ 'is-active' if path.startswith('/journal') }}">Журнал</a>
       </nav>
     </div>
   </header>
+
+  {# Таймер: HTMX загружает его при открытии страницы и обновляет раз в минуту. #}
+  <div class="container timer-slot" hx-get="{{ url_for('timer_partial') }}"
+       hx-trigger="load, every 60s" hx-swap="innerHTML"></div>
 
   <main class="container">
     {% block content %}{% endblock %}

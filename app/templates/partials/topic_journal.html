@@ -1,0 +1,34 @@
+{# Журнал на странице темы: форма и записи. После добавления или удаления
+   HTMX заменяет весь блок свежей версией. #}
+<section class="card" id="topic-journal">
+  <h2>Мой журнал</h2>
+  <p class="muted">Заметки по теме и ссылки на репозиторий или решённые задачи.</p>
+
+  {% if error | default('') %}<p class="form-error">{{ error }}</p>{% endif %}
+
+  <form class="journal-form" method="post" action="{{ url_for('add_entry', slug=topic.slug) }}"
+        hx-post="{{ url_for('add_entry', slug=topic.slug) }}"
+        hx-target="#topic-journal" hx-swap="outerHTML">
+    <label>Заметка
+      <textarea name="text" rows="3" placeholder="Что понял, что было трудно, что стоит повторить">{{ text | default('') }}</textarea>
+    </label>
+    <label>Ссылка
+      <input type="url" name="url" value="{{ url | default('') }}" placeholder="https://github.com/…">
+    </label>
+    <button class="btn btn-primary" type="submit">Добавить запись</button>
+  </form>
+
+  {% for entry in topic.journal_entries %}
+  <article class="journal-item">
+    {% if entry.text %}<div class="prose">{{ entry.text | markdown }}</div>{% endif %}
+    {% if entry.url %}
+    <p class="journal-link"><a href="{{ entry.url }}" target="_blank" rel="noopener noreferrer">{{ entry.url }}</a></p>
+    {% endif %}
+    <form method="post" action="{{ url_for('delete_entry', entry_id=entry.id) }}"
+          hx-post="{{ url_for('delete_entry', entry_id=entry.id) }}"
+          hx-target="#topic-journal" hx-swap="outerHTML">
+      <button class="btn btn-small btn-danger" type="submit">Удалить</button>
+    </form>
+  </article>
+  {% endfor %}
+</section>

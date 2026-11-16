@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.services import cards as cards_service
+from app.services import dashboard as dashboard_service
 from app.services import roadmap as roadmap_service
 from app.services.system import database_is_available
 from app.templating import templates
@@ -21,18 +22,24 @@ def home(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> HTMLResponse:
-    """Главная страница: что учить сейчас и прогресс по этапам.
-
-    Позже здесь будет полноценный дашборд с часами и прогнозом.
-    """
+    """Дашборд: неделя, серия дней, что учить сейчас, прогресс и прогноз."""
+    today = local_today(settings.timezone)
     stages = roadmap_service.get_stages(db)
-    queue = cards_service.get_queue(db, local_today(settings.timezone), settings.new_cards_per_day)
+    queue = cards_service.get_queue(db, today, settings.new_cards_per_day)
+    pace = dashboard_service.get_pace(db, today, settings.weekly_goal_hours)
 
     return templates.TemplateResponse(
         request,
         "home.html",
         {
             "review_count": queue.total,
+            "today": today,
+            "week": dashboard_service.get_week(db, today, settings.weekly_goal_hours),
+            "streak": dashboard_service.calculate_streak(
+                dashboard_service.get_active_days(db, settings.timezone), today
+            ),
+            "pace": pace,
+            "forecast": dashboard_service.get_forecast(stages, pace, today),
             "next_topic": roadmap_service.get_next_topic(stages),
             "total_progress": roadmap_service.count_progress(
                 roadmap_service.get_all_topics(stages)

@@ -397,3 +397,104 @@ legend.question-text + * { clear: both; }
   .grade-buttons { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ===================== Этап 4: время, журнал, дашборд ===================== */
+
+.btn-small { padding: 4px 10px; font-size: 0.85rem; }
+.btn-danger { color: var(--muted); }
+.btn-danger:hover { color: var(--error); border-color: var(--error); }
+.nowrap { white-space: nowrap; }
+.form-error { margin: 0 0 12px; color: var(--error); }
+
+/* --- Таймер под шапкой --- */
+.timer-slot:empty { display: none; }
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.timer-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none; }
+.timer-text { flex: 1; min-width: 0; }
+.start-form { margin-top: 12px; }
+
+/* --- Плитки с главными числами --- */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.tile { margin-bottom: 0; }
+.tile-label { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.tile-value { margin: 2px 0; font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile-note { margin: 0; font-size: 0.85rem; color: var(--muted); }
+
+.two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.two-columns > .card { margin-bottom: 0; }
+
+/* --- График недели ---
+   Семь колонок одинаковой ширины. Столбец растёт снизу вверх: его высота
+   задана в процентах прямо в HTML, а align-items: flex-end прижимает его к низу. */
+.week-chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 12px; }
+.week-day { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.week-bar-area {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.week-bar { width: 60%; max-width: 44px; background: var(--accent); border-radius: 4px 4px 0 0; }
+.week-value { font-size: 0.75rem; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.week-name { font-size: 0.85rem; color: var(--muted); }
+.week-day.is-today .week-name { color: var(--text); font-weight: 600; }
+.week-day.is-future .week-name { opacity: 0.5; }
+
+/* --- Прогноз --- */
+.forecast-note { margin: 4px 0 0; font-size: 0.9rem; }
+.forecast-row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.forecast-row .stage-progress-name { margin: 0; }
+.forecast-date { font-size: 0.85rem; color: var(--muted); }
+
+/* --- Формы --- */
+label { display: grid; gap: 4px; font-size: 0.9rem; color: var(--muted); }
+input[type="text"], input[type="url"], input[type="number"], input[type="date"], select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+textarea { resize: vertical; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.form-wide { grid-column: 1 / -1; }
+.form-grid .btn { width: fit-content; }
+.inline-form { display: flex; gap: 6px; align-items: center; }
+.inline-form input { width: 5.5em; }
+
+/* --- Таблица занятий --- */
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 8px 10px; text-align: left; border-top: 1px solid var(--border); vertical-align: middle; }
+.data-table th { font-size: 0.8rem; color: var(--muted); font-weight: 400; border-top: none; }
+
+/* --- Журнал --- */
+.journal-form { display: grid; gap: 12px; margin: 12px 0 4px; }
+.journal-form .btn { width: fit-content; }
+.journal-item { padding: 14px 0 0; margin-top: 14px; border-top: 1px solid var(--border); }
+.journal-item .prose, .journal-entry .prose { margin-bottom: 8px; }
+.journal-link { margin: 0 0 10px; overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+  .tiles, .two-columns { grid-template-columns: 1fr; }
+  .week-value { font-size: 0.65rem; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+

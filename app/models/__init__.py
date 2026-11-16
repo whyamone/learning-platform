@@ -4,6 +4,7 @@
 и смог сравнить с реальной структурой базы.
 """
 
+from app.models.activity import JournalEntry, StudySession
 from app.models.card import Card, CardReview, CardState
 from app.models.progress import TopicProgress, TopicStatus
 from app.models.quiz import QuizAttempt, QuizQuestion
@@ -14,11 +15,13 @@ __all__ = [
     "Card",
     "CardReview",
     "CardState",
+    "JournalEntry",
     "Module",
     "QuizAttempt",
     "QuizQuestion",
     "Setting",
     "Stage",
+    "StudySession",
     "Topic",
     "TopicLink",
     "TopicProgress",

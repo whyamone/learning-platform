@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Время · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Время</h1>
+  <p class="lead">Занятия записывает таймер. Если забыл его включить — добавь время вручную.</p>
+</section>
+
+{% if error %}
+<section class="card card-warn"><p class="form-error">{{ error }}</p></section>
+{% endif %}
+
+<div class="two-columns">
+  <section class="card">
+    <h2>Таймер</h2>
+    {% if running %}
+    <p>Идёт занятие: <strong>{{ elapsed | duration }}</strong>{% if running.topic %} · {{ running.topic.title }}{% endif %}</p>
+    <form method="post" action="{{ url_for('stop_timer') }}">
+      <button class="btn btn-primary" type="submit">Закончить занятие</button>
+    </form>
+    {% else %}
+    <p class="muted">Таймер не запущен. Удобнее всего запускать его кнопкой на странице темы.</p>
+    <form method="post" action="{{ url_for('start_timer') }}">
+      <button class="btn" type="submit">Начать занятие без темы</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Добавить вручную</h2>
+    <form class="form-grid" method="post" action="{{ url_for('add_session') }}">
+      <label>Дата
+        <input type="date" name="day" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" required>
+      </label>
+      <label>Минут
+        <input type="number" name="minutes" min="1" max="960" value="60" required>
+      </label>
+      <label class="form-wide">Тема
+        <select name="topic_slug">
+          <option value="">— без темы —</option>
+          {% for topic in topics %}
+          <option value="{{ topic.slug }}">{{ topic.title }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="btn btn-primary" type="submit">Добавить</button>
+    </form>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Последние занятия</h2>
+  {% if sessions %}
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr><th>Дата</th><th>Тема</th><th>Как записано</th><th>Минут</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for session in sessions %}
+        <tr>
+          <td class="nowrap">{{ session.day | date_ru }}</td>
+          <td>
+            {% if session.topic %}
+            <a href="{{ url_for('topic_page', slug=session.topic.slug) }}">{{ session.topic.title }}</a>
+            {% else %}<span class="muted">без темы</span>{% endif %}
+          </td>
+          <td class="muted nowrap">{{ "таймер" if session.source == "timer" else "вручную" }}</td>
+          <td>
+            {# Длительность можно исправить прямо в таблице. #}
+            <form class="inline-form" method="post" action="{{ url_for('update_session', session_id=session.id) }}">
+              <input type="number" name="minutes" min="1" max="960" value="{{ session.minutes }}"
+                     aria-label="Минут" required>
+              <button class="btn btn-small" type="submit">Сохранить</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('delete_session', session_id=session.id) }}">
+              <button class="btn btn-small btn-danger" type="submit">Удалить</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Занятий пока нет. Открой тему и нажми «Начать занятие».</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Журнал</h1>
+  <p class="lead">Заметки и ссылки на твои репозитории и решённые задачи. Новые записи добавляются на странице темы.</p>
+</section>
+
+{% if entries %}
+{% for entry in entries %}
+<article class="card journal-entry">
+  <p class="card-label">
+    <a href="{{ url_for('topic_page', slug=entry.topic.slug) }}">{{ entry.topic.title }}</a>
+  </p>
+  {% if entry.text %}<div class="prose">{{ entry.text | markdown }}</div>{% endif %}
+  {% if entry.url %}
+  <p class="journal-link"><a href="{{ entry.url }}" target="_blank" rel="noopener noreferrer">{{ entry.url }}</a></p>
+  {% endif %}
+  <form method="post" action="{{ url_for('delete_entry', entry_id=entry.id) }}">
+    <button class="btn btn-small btn-danger" type="submit">Удалить</button>
+  </form>
+</article>
+{% endfor %}
+{% else %}
+<section class="card">
+  <h2>Записей пока нет</h2>
+  <p class="muted">Открой тему, над которой работаешь, и добавь заметку или ссылку на репозиторий с решением.</p>
+  <a class="btn" href="{{ url_for('roadmap') }}">К дорожной карте</a>
+</section>
+{% endif %}
+{% endblock %}

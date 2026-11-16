@@ -1,73 +1,123 @@
 {% extends "base.html" %}
-{% from "macros.html" import status_badge, progress_bar %}
+{% from "macros.html" import progress_bar %}
 
 {% block title %}Главная · {{ app_name }}{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">с нуля → junior AI-разработчик</p>
-  <h1>Что учим сегодня</h1>
+  <p class="eyebrow">{{ today | date_ru(with_year=True) }}</p>
+  <h1>Дашборд</h1>
 </section>
 
-<section class="card">
-  {% if next_topic %}
-    <p class="card-label">
-      {{ "Продолжить" if next_topic.status.value == "in_progress" else "Следующая тема" }}
-    </p>
-    <h2 class="next-title">
-      <a href="{{ url_for('topic_page', slug=next_topic.slug) }}">{{ next_topic.title }}</a>
-    </h2>
-    <p class="muted">
-      {{ next_topic.module.stage.title }} › {{ next_topic.module.title }}
-      · примерно {{ next_topic.estimated_hours | hours }}
-    </p>
-    {% if next_topic.summary %}<p>{{ next_topic.summary }}</p>{% endif %}
-    <a class="btn btn-primary" href="{{ url_for('topic_page', slug=next_topic.slug) }}">Открыть тему</a>
-  {% elif total_progress.total == 0 %}
-    <h2>Тем пока нет</h2>
-    <p class="muted">Добавь учебные материалы в папку <code>content/</code> и перечитай их на странице дорожной карты.</p>
-  {% else %}
-    <h2>Все темы пройдены</h2>
-    <p class="muted">Дорожная карта закрыта полностью. Можно вернуться к темам с пометкой «Повторить».</p>
-  {% endif %}
-</section>
-
-<section class="card">
-  <div class="card-head">
-    <h2>Повторение</h2>
-    <a href="{{ url_for('review_page') }}">Открыть →</a>
+{# --- Три главных числа --- #}
+<section class="tiles">
+  <div class="card tile">
+    <p class="tile-label">Эта неделя</p>
+    <p class="tile-value">{{ week.total_minutes | duration }}</p>
+    <p class="tile-note">из {{ week.goal_minutes | duration }} по плану · {{ week.goal_percent }}%</p>
   </div>
-  {% if review_count %}
-  <p>Карточек на сегодня: <strong>{{ review_count }}</strong>. Это займёт несколько минут.</p>
-  <a class="btn btn-primary" href="{{ url_for('review_page') }}">Повторить</a>
-  {% else %}
-  <p class="muted">На сегодня карточек нет.</p>
-  {% endif %}
+  <div class="card tile">
+    <p class="tile-label">Серия</p>
+    <p class="tile-value">{{ streak.current }} {{ streak.current | plural("день", "дня", "дней") }}</p>
+    <p class="tile-note">
+      {% if streak.current == 0 %}начнётся с первого занятия
+      {% elif streak.studied_today %}сегодня уже занимался
+      {% else %}сегодня ещё можно продолжить{% endif %}
+      {% if streak.best > streak.current %}· лучшая: {{ streak.best }}{% endif %}
+    </p>
+  </div>
+  <div class="card tile">
+    <p class="tile-label">Темп</p>
+    <p class="tile-value">{{ pace.hours_per_week | hours }} в неделю</p>
+    <p class="tile-note">
+      {% if pace.is_measured %}в среднем за последние четыре недели
+      {% else %}плановый — свой появится после двух недель занятий{% endif %}
+    </p>
+  </div>
 </section>
 
-{% if stage_views %}
+{# --- График недели: столбцы на чистом CSS, высота задана в процентах --- #}
 <section class="card">
   <div class="card-head">
-    <h2>Прогресс по этапам</h2>
+    <h2>Занятия по дням</h2>
+    <a href="{{ url_for('time_page') }}">Все занятия →</a>
+  </div>
+  <div class="week-chart" role="img"
+       aria-label="Минуты занятий по дням недели: {% for d in week.days %}{{ d.name }} {{ d.minutes }}{{ ', ' if not loop.last }}{% endfor %}">
+    {% for d in week.days %}
+    <div class="week-day {{ 'is-today' if d.is_today }} {{ 'is-future' if d.is_future }}"
+         title="{{ d.day | date_ru }}: {{ d.minutes | duration }}">
+      <div class="week-bar-area">
+        {% if d.minutes %}<span class="week-value">{{ d.minutes | duration }}</span>{% endif %}
+        <div class="week-bar" style="height: {{ d.height_percent }}%"></div>
+      </div>
+      <span class="week-name">{{ d.name }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="two-columns">
+  <section class="card">
+    {% if next_topic %}
+      <p class="card-label">
+        {{ "Продолжить" if next_topic.status.value == "in_progress" else "Следующая тема" }}
+      </p>
+      <h2 class="next-title">
+        <a href="{{ url_for('topic_page', slug=next_topic.slug) }}">{{ next_topic.title }}</a>
+      </h2>
+      <p class="muted">
+        {{ next_topic.module.stage.title }} › {{ next_topic.module.title }}
+        · примерно {{ next_topic.estimated_hours | hours }}
+      </p>
+      <a class="btn btn-primary" href="{{ url_for('topic_page', slug=next_topic.slug) }}">Открыть тему</a>
+    {% elif total_progress.total == 0 %}
+      <h2>Тем пока нет</h2>
+      <p class="muted">Добавь учебные материалы в папку <code>content/</code> и перечитай их на странице дорожной карты.</p>
+    {% else %}
+      <h2>Все темы пройдены</h2>
+      <p class="muted">Дорожная карта закрыта полностью. Можно вернуться к темам с пометкой «Повторить».</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <p class="card-label">Повторение</p>
+    {% if review_count %}
+    <h2 class="next-title">Карточек на сегодня: <strong>{{ review_count }}</strong></h2>
+    <p class="muted">Это займёт несколько минут.</p>
+    <a class="btn btn-primary" href="{{ url_for('review_page') }}">Повторить</a>
+    {% else %}
+    <h2 class="next-title">На сегодня карточек нет</h2>
+    <p class="muted">Они появятся, когда начнёшь тему или подойдёт срок повторения.</p>
+    {% endif %}
+  </section>
+</div>
+
+{% if forecast %}
+<section class="card">
+  <div class="card-head">
+    <h2>Этапы и прогноз</h2>
     <a href="{{ url_for('roadmap') }}">Вся карта →</a>
   </div>
+  <p class="muted forecast-note">
+    Прогноз — оставшиеся часы, делённые на темп {{ pace.hours_per_week | hours }} в неделю.
+    Он пересчитывается сам: пропустил неделю — дата просто сдвинется.
+  </p>
   <ul class="stage-progress-list">
-    {% for view in stage_views %}
+    {% for item in forecast %}
     <li>
-      <span class="stage-progress-name">{{ view.stage.position }}. {{ view.stage.title }}</span>
-      {{ progress_bar(view.progress) }}
+      <div class="forecast-row">
+        <span class="stage-progress-name">{{ item.stage.position }}. {{ item.stage.title }}</span>
+        <span class="forecast-date">
+          {% if item.finish_date %}
+            осталось {{ item.remaining_hours | hours }} · примерно до {{ item.finish_date | date_ru(with_year=True) }}
+          {% else %}этап закрыт{% endif %}
+        </span>
+      </div>
+      {{ progress_bar(stage_views[loop.index0].progress) }}
     </li>
     {% endfor %}
   </ul>
 </section>
 {% endif %}
-
-<section class="card">
-  <h2>Состояние</h2>
-  {# HTMX: при загрузке страницы запросить /partials/status
-     и вставить ответ сервера внутрь этого блока. #}
-  <div hx-get="{{ url_for('status_partial') }}" hx-trigger="load" hx-swap="innerHTML">
-    <p class="muted">Проверяю…</p>
-  </div>
-</section>
 {% endblock %}

@@ -21,6 +21,10 @@
     {% if topic.is_stub %}· <span class="badge badge-stub">заготовка</span> подробная теория ещё не написана{% endif %}
   </p>
   {% include "partials/topic_status.html" %}
+  <form class="start-form" method="post" action="{{ url_for('start_timer') }}">
+    <input type="hidden" name="topic_slug" value="{{ topic.slug }}">
+    <button class="btn" type="submit" title="Запустить таймер: время запишется на эту тему">Начать занятие</button>
+  </form>
 </header>
 
 {% if topic.goal %}
@@ -122,6 +126,8 @@
   </ul>
 </section>
 {% endif %}
+
+{% include "partials/topic_journal.html" %}
 
 <nav class="topic-nav" aria-label="Соседние темы">
   {% if neighbors.previous %}

@@ -32,7 +32,8 @@ def test_static_files_are_served(client):
 
 def test_pages_do_not_load_anything_from_the_internet(client):
     """Приложение должно работать без интернета: стили и скрипты — только свои."""
-    for url in ("/", "/roadmap", "/topics/peremennye", "/topics/peremennye/quiz", "/review"):
+    pages = ("/", "/roadmap", "/topics/peremennye", "/topics/peremennye/quiz", "/review")
+    for url in (*pages, "/time", "/journal"):
         html = client.get(url).text
 
         # Адреса, которые браузер загружает сам: <script src>, <img src>, <link href>.
@@ -252,3 +253,109 @@ def test_grading_rejects_unknown_grade_and_unknown_card(client):
 
     assert client.post(url, data={"grade": "отлично"}).status_code == 422
     assert client.post("/review/999999", data={"grade": "good"}).status_code == 404
+
+
+# --- Время, журнал, дашборд -------------------------------------------------------
+
+
+def test_dashboard_shows_week_streak_and_forecast(client):
+    html = client.get("/").text
+
+    for text in ("Эта неделя", "Серия", "Темп", "Занятия по дням", "Этапы и прогноз"):
+        assert text in html
+    assert "0 дней" in html
+    assert "плановый" in html  # занятий ещё нет — темп берётся из плана
+    assert "примерно до" in html
+
+
+def test_timer_start_and_stop_from_topic_page(client):
+    assert "Начать занятие" in client.get("/topics/peremennye").text
+    assert "Идёт занятие" not in client.get("/partials/timer").text
+
+    response = client.post(
+        "/timer/start", data={"topic_slug": "peremennye"}, follow_redirects=False
+    )
+    assert response.status_code == 303
+    assert response.headers["location"].endswith("/topics/peremennye")
+
+    timer = client.get("/partials/timer").text
+    assert "Идёт занятие" in timer
+    assert "Переменные" in timer
+
+    stopped = client.post("/timer/stop", headers={"HX-Request": "true"})
+    assert stopped.headers["HX-Refresh"] == "true"
+    assert "Идёт занятие" not in client.get("/partials/timer").text
+
+
+def test_manual_session_appears_in_list_and_on_dashboard(client):
+    from app.timeutils import local_today
+
+    today = local_today("Europe/Moscow").isoformat()
+    response = client.post("/time", data={"day": today, "minutes": "90", "topic_slug": "terminal"})
+
+    assert response.status_code == 200
+    assert "Терминал" in response.text
+    assert 'value="90"' in response.text
+    dashboard = client.get("/").text
+    assert "1 ч 30 мин" in dashboard
+    assert "1 день" in dashboard  # серия началась
+
+
+def test_manual_session_with_bad_minutes_shows_error(client):
+    from app.timeutils import local_today
+
+    today = local_today("Europe/Moscow").isoformat()
+    response = client.post("/time", data={"day": today, "minutes": "0"})
+
+    assert response.status_code == 400
+    assert "Минут должно быть" in response.text
+
+
+def test_session_can_be_edited_and_deleted(client):
+    from app.timeutils import local_today
+
+    today = local_today("Europe/Moscow").isoformat()
+    html = client.post("/time", data={"day": today, "minutes": "90"}).text
+    session_url = re.search(r'action="([^"]*/time/\d+)"', html).group(1)
+
+    assert 'value="45"' in client.post(session_url, data={"minutes": "45"}).text
+    assert "Занятий пока нет" in client.post(f"{session_url}/delete").text
+    assert client.post("/time/999999/delete").status_code == 404
+
+
+def test_journal_entry_on_topic_page_and_journal_page(client):
+    response = client.post(
+        "/topics/peremennye/journal",
+        data={"text": "Решил **все** задачи", "url": "https://github.com/me/study"},
+        headers={"HX-Request": "true"},
+    )
+
+    assert response.status_code == 200
+    assert "<html" not in response.text
+    assert "<strong>все</strong>" in response.text
+    assert "https://github.com/me/study" in response.text
+
+    journal = client.get("/journal").text
+    assert "Переменные" in journal
+    assert "https://github.com/me/study" in journal
+
+
+def test_journal_shows_error_and_keeps_text(client):
+    response = client.post(
+        "/topics/peremennye/journal",
+        data={"text": "моя заметка", "url": "javascript:alert(1)"},
+        headers={"HX-Request": "true"},
+    )
+
+    assert "Ссылка должна начинаться" in response.text
+    assert "моя заметка" in response.text  # введённое не потерялось
+    assert "Записей пока нет" in client.get("/journal").text
+
+
+def test_journal_entry_can_be_deleted(client):
+    client.post("/topics/peremennye/journal", data={"text": "черновик"})
+    delete_url = re.search(r'action="([^"]*/journal/\d+/delete)"', client.get("/journal").text)
+
+    response = client.post(delete_url.group(1))
+
+    assert "Записей пока нет" in response.text

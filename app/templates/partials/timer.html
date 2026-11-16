@@ -1,0 +1,12 @@
+{# Таймер в шапке сайта. Этот блок HTMX запрашивает при загрузке страницы
+   и затем раз в минуту (см. base.html), поэтому минуты обновляются сами. #}
+{% if running %}
+<form class="timer is-running" method="post" action="{{ url_for('stop_timer') }}"
+      hx-post="{{ url_for('stop_timer') }}">
+  <span class="timer-dot" aria-hidden="true"></span>
+  <span class="timer-text">
+    Идёт занятие: {{ elapsed | duration }}{% if running.topic %} · {{ running.topic.title }}{% endif %}
+  </span>
+  <button class="btn btn-small" type="submit">Закончить</button>
+</form>
+{% endif %}
