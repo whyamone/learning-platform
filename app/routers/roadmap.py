@@ -9,9 +9,11 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.models import Topic, TopicStatus
+from app.routers.mentor import mentor_context
 from app.services import quiz as quiz_service
 from app.services import roadmap as roadmap_service
 from app.services.importer import import_content
+from app.services.mentor import MentorMode
 from app.templating import templates
 
 router = APIRouter(tags=["дорожная карта"])
@@ -48,7 +50,12 @@ def roadmap(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
 
 
 @router.get("/topics/{slug}", response_class=HTMLResponse)
-def topic_page(slug: str, request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+def topic_page(
+    slug: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> HTMLResponse:
     """Страница одной темы: теория, практика, материалы."""
     topic = _get_topic_or_404(db, slug)
     stages = roadmap_service.get_stages(db)
@@ -60,6 +67,13 @@ def topic_page(slug: str, request: Request, db: Session = Depends(get_db)) -> HT
             "topic": topic,
             "neighbors": roadmap_service.get_neighbors(stages, topic),
             "quiz_stats": quiz_service.get_stats(db, topic),
+            "mentor_enabled": settings.ai_mentor_enabled,
+            # Блок наставника добавляем, только если он включён в настройках.
+            **(
+                mentor_context(db, settings, topic, MentorMode.EXPLAIN)
+                if settings.ai_mentor_enabled
+                else {}
+            ),
         },
     )
 

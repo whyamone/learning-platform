@@ -525,3 +525,33 @@ textarea { resize: vertical; }
   .plan-item { grid-template-columns: 5.5em 1fr; }
 }
 
+/* ===================== Этап 6: ИИ-наставник ===================== */
+
+.mentor-model { font-size: 0.8rem; font-family: var(--font-mono); }
+.mentor-modes { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+.mentor-mode {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+.mentor-mode:hover { color: var(--text); border-color: var(--muted); }
+.mentor-mode.is-current { color: var(--text); background: var(--surface-2); border-color: var(--muted); font-weight: 600; }
+
+/* minmax(0, 1fr): колонка не шире блока, даже если внутри длинная строка кода —
+   тогда прокручивается сам код, а не вся страница. */
+.mentor-messages { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 14px; }
+.mentor-message { padding: 10px 14px; border-radius: 8px; background: var(--surface-2); }
+.mentor-user { background: transparent; border: 1px solid var(--border); }
+.mentor-author { margin: 0 0 4px; font-size: 0.78rem; color: var(--muted); }
+.mentor-assistant .mentor-author { color: var(--accent); }
+
+.mentor-form { display: grid; gap: 10px; margin-bottom: 12px; }
+.mentor-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mentor-actions .btn + .btn { margin-left: 0; }
+/* HTMX сам показывает элемент с классом htmx-indicator на время запроса. */
+.htmx-indicator { opacity: 0; transition: opacity 200ms; font-size: 0.9rem; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
+

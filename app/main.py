@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import __version__
 from app.config import get_settings
 from app.db import SessionLocal
-from app.routers import health, journal, pages, plan, quiz, review, roadmap, time
+from app.routers import health, journal, mentor, pages, plan, quiz, review, roadmap, time
 from app.services.content_loader import ContentProblem
 from app.services.importer import ImportReport, import_content
 from app.templating import APP_DIR
@@ -98,6 +98,7 @@ def create_app(*, import_on_startup: bool = True) -> FastAPI:
     app.include_router(time.router)
     app.include_router(journal.router)
     app.include_router(plan.router)
+    app.include_router(mentor.router)
 
     return app
 

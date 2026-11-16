@@ -6,6 +6,7 @@
 
 from app.models.activity import JournalEntry, StudySession
 from app.models.card import Card, CardReview, CardState
+from app.models.mentor import MentorMessage
 from app.models.progress import TopicProgress, TopicStatus
 from app.models.quiz import QuizAttempt, QuizQuestion
 from app.models.roadmap import Module, Stage, Topic, TopicLink
@@ -16,6 +17,7 @@ __all__ = [
     "CardReview",
     "CardState",
     "JournalEntry",
+    "MentorMessage",
     "Module",
     "QuizAttempt",
     "QuizQuestion",

@@ -1,0 +1,59 @@
+{# Блок ИИ-наставника на странице темы. Переключение режима, отправка сообщения
+   и очистка разговора заменяют весь блок через HTMX (hx-target="#mentor"). #}
+<section class="card mentor" id="mentor">
+  <div class="card-head">
+    <h2>ИИ-наставник</h2>
+    <span class="muted mentor-model">модель: {{ mentor_model }}</span>
+  </div>
+
+  {# Вкладки режимов. Это ссылки: без JavaScript они просто откроют блок отдельно. #}
+  <nav class="mentor-modes" aria-label="Режим наставника">
+    {% for mode in mentor_modes %}
+    <a href="{{ url_for('mentor_block', slug=topic.slug) }}?mode={{ mode.value }}"
+       hx-get="{{ url_for('mentor_block', slug=topic.slug) }}?mode={{ mode.value }}"
+       hx-target="#mentor" hx-swap="outerHTML"
+       class="mentor-mode {{ 'is-current' if mode == mentor_mode }}">{{ mode.label }}</a>
+    {% endfor %}
+  </nav>
+
+  <div class="mentor-messages">
+    {% for message in mentor_history %}
+    <div class="mentor-message mentor-{{ message.role }}">
+      <p class="mentor-author">{{ "Ты" if message.role == "user" else "Наставник" }}</p>
+      {# Ответ модели — Markdown. HTML-теги в нём не выполняются (см. services/markdown.py). #}
+      <div class="prose">{{ message.content | markdown }}</div>
+    </div>
+    {% else %}
+    <p class="muted">Разговор ещё не начат. Напиши вопрос или нажми кнопку быстрого старта.</p>
+    {% endfor %}
+  </div>
+
+  {% if mentor_error %}<p class="form-error">{{ mentor_error }}</p>{% endif %}
+
+  <form class="mentor-form" method="post" action="{{ url_for('ask_mentor', slug=topic.slug) }}"
+        hx-post="{{ url_for('ask_mentor', slug=topic.slug) }}"
+        hx-target="#mentor" hx-swap="outerHTML"
+        hx-indicator="#mentor-wait" hx-disabled-elt="find button">
+    <input type="hidden" name="mode" value="{{ mentor_mode.value }}">
+    <label>Сообщение
+      <textarea name="text" rows="4" placeholder="{{ mentor_mode.placeholder }}">{{ mentor_draft }}</textarea>
+    </label>
+    <div class="mentor-actions">
+      <button class="btn btn-primary" type="submit">Отправить</button>
+      {% if not mentor_history %}
+      {# Кнопка с name и value отправляет готовый текст вместо набранного. #}
+      <button class="btn" type="submit" name="text" value="{{ mentor_mode.starter }}">{{ mentor_mode.starter }}</button>
+      {% endif %}
+      <span id="mentor-wait" class="htmx-indicator muted">Модель думает… это может занять до минуты</span>
+    </div>
+  </form>
+
+  {% if mentor_history %}
+  <form method="post" action="{{ url_for('clear_mentor', slug=topic.slug) }}"
+        hx-post="{{ url_for('clear_mentor', slug=topic.slug) }}"
+        hx-target="#mentor" hx-swap="outerHTML">
+    <input type="hidden" name="mode" value="{{ mentor_mode.value }}">
+    <button class="btn btn-small btn-danger" type="submit">Начать разговор заново</button>
+  </form>
+  {% endif %}
+</section>

@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     # большой темы на тебя не свалилось тридцать незнакомых карточек разом.
     new_cards_per_day: int = 10
 
+    # --- ИИ-наставник (по умолчанию выключен: приложение работает и без него) ---
+    ai_mentor_enabled: bool = False
+    # Адрес сервера модели с OpenAI-совместимым API. host.docker.internal —
+    # имя, под которым контейнер видит твой компьютер, где запущена Ollama.
+    ollama_base_url: str = "http://host.docker.internal:11434/v1"
+    # Какую модель использовать. Она должна быть скачана: ollama pull <имя>.
+    ollama_model: str = "qwen2.5:7b"
+    # Сколько секунд ждать ответа. Локальная модель может думать долго,
+    # особенно при первом запросе, когда она загружается в видеопамять.
+    ollama_timeout_seconds: float = 180.0
+
 
 @lru_cache
 def get_settings() -> Settings:

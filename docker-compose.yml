@@ -20,6 +20,12 @@ services:
       # Учебные материалы: правишь файл в content/ — контейнер видит изменения.
       - ./content:/app/content
 
+    # Имя host.docker.internal ведёт из контейнера на твой компьютер — там работает
+    # Ollama для ИИ-наставника. В Docker Desktop оно есть и так, а на Linux
+    # появляется благодаря этой строке.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     # Настройки из файла .env (файл необязателен: без него работают значения по умолчанию).
     env_file:
       - path: .env

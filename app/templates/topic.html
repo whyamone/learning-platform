@@ -127,6 +127,8 @@
 </section>
 {% endif %}
 
+{% if mentor_enabled %}{% include "partials/mentor.html" %}{% endif %}
+
 {% include "partials/topic_journal.html" %}
 
 <nav class="topic-nav" aria-label="Соседние темы">
