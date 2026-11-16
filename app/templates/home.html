@@ -57,6 +57,28 @@
   </div>
 </section>
 
+{# --- План на сегодня --- #}
+<section class="card">
+  <div class="card-head">
+    <h2>Сегодня по плану</h2>
+    <a href="{{ url_for('plan_page') }}">Весь план →</a>
+  </div>
+  {% if plan_today and plan_today.items %}
+    {% if plan_today.studied_minutes %}
+    <p class="muted">Уже занимался {{ plan_today.studied_minutes | duration }}. Осталось:</p>
+    {% endif %}
+    {% with items = plan_today.items %}{% include "partials/plan_items.html" %}{% endwith %}
+  {% elif plan_today and plan_today.is_rest %}
+    <p>Сегодня выходной по расписанию.
+    {% if plan_next_day %}Следующее занятие — {{ plan_next_day.name }}, {{ plan_next_day.day | date_ru }}.{% endif %}</p>
+    <p class="muted">Если есть настроение позаниматься — время всё равно засчитается.</p>
+  {% elif plan_today and plan_today.studied_minutes %}
+    <p>План на сегодня выполнен: {{ plan_today.studied_minutes | duration }}.</p>
+  {% else %}
+    <p class="muted">На сегодня ничего не запланировано.</p>
+  {% endif %}
+</section>
+
 <div class="two-columns">
   <section class="card">
     {% if next_topic %}

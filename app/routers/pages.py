@@ -6,9 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.db import get_db
+from app.routers.plan import make_plan
 from app.services import cards as cards_service
 from app.services import dashboard as dashboard_service
+from app.services import planner as planner_service
 from app.services import roadmap as roadmap_service
+from app.services import schedule as schedule_service
 from app.services.system import database_is_available
 from app.templating import templates
 from app.timeutils import local_today
@@ -26,7 +29,10 @@ def home(
     today = local_today(settings.timezone)
     stages = roadmap_service.get_stages(db)
     queue = cards_service.get_queue(db, today, settings.new_cards_per_day)
-    pace = dashboard_service.get_pace(db, today, settings.weekly_goal_hours)
+    # План на неделю берётся из расписания: с ним сравниваются часы и считается прогноз.
+    goal_hours = schedule_service.weekly_hours(schedule_service.get_schedule(db))
+    pace = dashboard_service.get_pace(db, today, goal_hours)
+    plan = make_plan(db, settings)
 
     return templates.TemplateResponse(
         request,
@@ -34,7 +40,9 @@ def home(
         {
             "review_count": queue.total,
             "today": today,
-            "week": dashboard_service.get_week(db, today, settings.weekly_goal_hours),
+            "week": dashboard_service.get_week(db, today, goal_hours),
+            "plan_today": planner_service.find_today(plan),
+            "plan_next_day": planner_service.find_next_study_day(plan),
             "streak": dashboard_service.calculate_streak(
                 dashboard_service.get_active_days(db, settings.timezone), today
             ),

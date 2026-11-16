@@ -1,0 +1,17 @@
+{# Список пунктов плана на один день. Используется на странице «План» и на дашборде. #}
+<ul class="plan-items">
+  {% for item in items %}
+  <li class="plan-item plan-{{ item.kind }}">
+    <span class="plan-minutes">{{ item.minutes | duration }}</span>
+    <span class="plan-what">
+      {% if item.kind == "cards" %}
+        <a href="{{ url_for('review_page') }}">Повторение карточек</a>
+      {% else %}
+        <a href="{{ url_for('topic_page', slug=item.topic.slug) }}">{{ item.topic.title }}</a>
+        {% if item.kind == "revise" %}<span class="tag">освежить</span>
+        {% elif item.is_continuation %}<span class="tag">продолжение</span>{% endif %}
+      {% endif %}
+    </span>
+  </li>
+  {% endfor %}
+</ul>

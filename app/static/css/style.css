@@ -498,3 +498,30 @@ textarea { resize: vertical; }
   .form-grid { grid-template-columns: 1fr; }
 }
 
+/* ===================== Этап 5: планировщик ===================== */
+
+.plan-days { display: grid; gap: 0; margin-top: 8px; }
+.plan-day { padding: 12px 0; border-top: 1px solid var(--border); }
+.plan-day-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.plan-day-name { font-weight: 600; }
+.plan-day.is-past .plan-day-name, .plan-day.is-rest .plan-day-name { color: var(--muted); font-weight: 400; }
+.plan-day.is-today { border-left: 3px solid var(--accent); padding-left: 12px; margin-left: -15px; }
+.plan-day p { margin: 0; }
+.plan-fact { color: var(--text); }
+.plan-rest-label { margin-top: 6px !important; font-size: 0.9rem; }
+
+.plan-items { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
+.plan-item { display: grid; grid-template-columns: 6.5em 1fr; gap: 10px; align-items: baseline; }
+.plan-minutes { color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.plan-what .tag { margin-left: 6px; }
+.plan-what a { color: var(--text); text-decoration: none; }
+.plan-what a:hover { color: var(--accent-strong); }
+
+.schedule-form { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.schedule-form .btn { grid-column: 1 / -1; width: fit-content; }
+
+@media (max-width: 720px) {
+  .schedule-form { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .plan-item { grid-template-columns: 5.5em 1fr; }
+}
+

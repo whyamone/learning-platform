@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}План · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>План</h1>
+  <p class="lead">
+    Темы разложены по твоему расписанию. План строится заново при каждом открытии:
+    пропустил день — ничего отмечать не нужно, темы просто сдвинутся.
+  </p>
+</section>
+
+{% for week in weeks %}
+<section class="card">
+  <div class="card-head">
+    <h2>{{ week.title }}</h2>
+    <span class="muted">
+      {{ week.days[0].day | date_ru }} — {{ week.days[-1].day | date_ru }}
+      · по расписанию {{ week.scheduled_minutes | duration }}
+      {% if week.studied_minutes %}· сделано {{ week.studied_minutes | duration }}{% endif %}
+    </span>
+  </div>
+
+  <div class="plan-days">
+    {% for day in week.days %}
+    <div class="plan-day {{ 'is-today' if day.is_today }} {{ 'is-past' if day.is_past }} {{ 'is-rest' if day.is_rest and not day.studied_minutes }}">
+      <div class="plan-day-head">
+        <span class="plan-day-name">{{ day.name }}, {{ day.day | date_ru }}</span>
+        {% if day.is_today %}<span class="badge badge-done">сегодня</span>{% endif %}
+      </div>
+
+      {% if day.studied_minutes %}
+      <p class="plan-fact">Занимался {{ day.studied_minutes | duration }}</p>
+      {% endif %}
+
+      {% if day.items %}
+        {% if day.is_today and day.studied_minutes %}<p class="muted plan-rest-label">Осталось по плану:</p>{% endif %}
+        {% with items = day.items %}{% include "partials/plan_items.html" %}{% endwith %}
+      {% elif day.is_past %}
+        {% if not day.studied_minutes %}<p class="muted">Занятий не было</p>{% endif %}
+      {% elif day.is_rest %}
+        <p class="muted">Выходной по расписанию</p>
+      {% elif day.is_today %}
+        <p class="muted">План на сегодня выполнен</p>
+      {% else %}
+        <p class="muted">Все темы пройдены</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+<section class="card">
+  <h2>Расписание</h2>
+  <p class="muted">
+    Сколько часов ты готов заниматься в каждый день недели. Ноль — день без занятий.
+    Сейчас получается {{ weekly_hours | hours }} в неделю.
+  </p>
+  <form class="schedule-form" method="post" action="{{ url_for('save_schedule') }}">
+    {% for name in weekday_names %}
+    <label>{{ name }}
+      <input type="number" name="day{{ loop.index0 }}" min="0" max="12" step="0.5"
+             value="{{ '%g' | format(schedule[loop.index0] / 60) }}">
+    </label>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Сохранить расписание</button>
+  </form>
+</section>
+{% endblock %}

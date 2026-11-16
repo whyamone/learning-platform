@@ -33,7 +33,7 @@ def test_static_files_are_served(client):
 def test_pages_do_not_load_anything_from_the_internet(client):
     """Приложение должно работать без интернета: стили и скрипты — только свои."""
     pages = ("/", "/roadmap", "/topics/peremennye", "/topics/peremennye/quiz", "/review")
-    for url in (*pages, "/time", "/journal"):
+    for url in (*pages, "/time", "/journal", "/plan"):
         html = client.get(url).text
 
         # Адреса, которые браузер загружает сам: <script src>, <img src>, <link href>.
@@ -359,3 +359,43 @@ def test_journal_entry_can_be_deleted(client):
     response = client.post(delete_url.group(1))
 
     assert "Записей пока нет" in response.text
+
+
+# --- План --------------------------------------------------------------------------
+
+
+def test_plan_page_shows_two_weeks_and_schedule(client):
+    html = client.get("/plan").text
+
+    for text in ("Эта неделя", "Следующая неделя", "Расписание", "11,5 ч в неделю"):
+        assert text in html
+    assert "Переменные" in html  # первая тема попала в план
+    assert "сегодня" in html
+
+
+def test_schedule_can_be_changed(client):
+    data = {f"day{day}": "1" for day in range(7)}
+
+    response = client.post("/plan/schedule", data=data)
+
+    assert response.status_code == 200
+    assert "7 ч в неделю" in response.text
+    assert "Выходной по расписанию" not in response.text
+    # Дашборд сравнивает неделю уже с новым планом.
+    assert "из 7 ч по плану" in client.get("/").text
+
+
+def test_schedule_form_tolerates_garbage(client):
+    response = client.post("/plan/schedule", data={"day0": "два", "day2": "1,5"})
+
+    assert response.status_code == 200
+    assert "1,5 ч в неделю" in response.text
+
+
+def test_dashboard_shows_plan_for_today(client):
+    client.post("/plan/schedule", data={f"day{day}": "2" for day in range(7)})
+
+    html = client.get("/").text
+
+    assert "Сегодня по плану" in html
+    assert "plan-items" in html

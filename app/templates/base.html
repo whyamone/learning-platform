@@ -26,6 +26,8 @@
            class="nav-link {{ 'is-active' if path == '/' }}">Главная</a>
         <a href="{{ url_for('roadmap') }}"
            class="nav-link {{ 'is-active' if path.startswith('/roadmap') or path.startswith('/topics') }}">Дорожная карта</a>
+        <a href="{{ url_for('plan_page') }}"
+           class="nav-link {{ 'is-active' if path.startswith('/plan') }}">План</a>
         <a href="{{ url_for('review_page') }}"
            class="nav-link {{ 'is-active' if path.startswith('/review') }}">Повторение</a>
         <a href="{{ url_for('time_page') }}"
